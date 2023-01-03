@@ -1,6 +1,6 @@
 #' Roxygen commands
 #'
-#' @useDynLib myPackage
+#' @useDynLib GeoAdjust
 #'
 dummy <- function(){
   return(NULL)

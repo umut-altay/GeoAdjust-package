@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/reference/test_package.html#special-files
 
 library(testthat)
-library(myPackage)
+library(GeoAdjust)
 
-test_check("myPackage")
+test_check("GeoAdjust")
