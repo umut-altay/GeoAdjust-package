@@ -1,0 +1,345 @@
+---
+title: "GeoAdjust"
+output: rmarkdown::html_vignette
+bibliography: /Users/umuta/GeoAdjust/references.bib
+vignette: >
+  %\VignetteIndexEntry{GeoAdjust}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r, setup}
+library(GeoAdjust)
+```
+
+
+## INTRODUCTION
+
+The Demographic and Health Surveys program (DHS) organizes and conducts household surveys in low- and middle-income countries. DHS first aggregates the collected data into the centers of each household cluster and then randomly diplaces their GPS coordinates in order make the participants and their locations untracable. We call this small displacements "jittering". The true coordinates are jittered with respect to a known random displacement algorithm which applies different maximum jittering distances for urban and rural areas. The urban cluster centers are jittered up to two kilometers, while the rural ones are jittered up to 5 kilometers (with the 1% of them being jittered up to 10 kilometers)[@DHSspatial07]. 
+
+<!-- DHS applies two levels of measures to protect privacy of the survey participants. First, the individual level data is aggregated into the household cluster centers, so that the individual responses become indistinguishable. On top of this, the true coordinates of the cluster centers are geographically masked by randomly displacing (jittering) them. The true coordinates are displaced with respect to a known jittering algorithm which applies different maximum displacement distances for urban and rural areas. The urban cluster centers are jittered up to two kilometers, while the rural ones are jittered up to 5 kilometers (with the 1% of them being jittered up to 10 kilometers)[@DHSspatial07].  -->
+
+The random displacement leads the observed coordinates to contain positional error. We discovered that such error results in attenuated (towards zero) model parameter estimates and poor predictive performance, unless it is addressed [@altay2022accounting], [@altay2022covariates]. This package aims to provide fast and useful tools that allow doing inference and prediction while adjusting/accounting for the positional error in the GPS coordinates of the survey cluster centers.
+
+## THE MODEL
+Let $\boldsymbol{s}_1^*, \ldots, \boldsymbol{s}_C^* \in\mathcal{D}$ denote the true locations of the cluster centers $\boldsymbol{s}_1, \ldots, \boldsymbol{s}_C$. The adjusted observation model is, 
+\begin{align}
+\label{eqn:adjObsModel}
+\begin{split}
+y_c | r_c,n_c &\sim \text{Binomial}(n_c, r_c), \quad \boldsymbol{s}_c|\boldsymbol{s}_c^*\sim \pi_{\mathrm{Urb}[c]}(\boldsymbol{s}_c|\boldsymbol{s}_c^*),\\
+    r_c | \boldsymbol{s}_c^* &= r(\boldsymbol{s}_c^*) = \mathrm{logit}^{-1}( \eta(\boldsymbol{s}_c^*)),
+\end{split}
+\end{align}
+where $r_c$ is the risk in cluster $c$, and $\mathrm{Urb}[c]\in\{\mathrm{U}, \mathrm{R}\}$ corresponds to the cluster's urban (U) or rural (R) designation, for $c = 1, \ldots, C$. In this observation model, both $y_c$ and $\boldsymbol{s}_c$ are treated as observed quantities. The unobserved true locations $s_c^*$ are treated as random quantities and assigned a uniform prior $s_c^*\sim \mathcal{U}(\mathcal{D})$. This implies that we treat all locations $\boldsymbol{s}_c^*$ within the maximum jittering distance from $\boldsymbol{s}_c$ as equally likely \emph{a priori}.
+
+## DATA PREPARATION
+
+### Geography 
+
+The first step of the data preparation is to download and read the shape files that will be used through the analysis.. Border shape files of various  administrative area levels for different countries are available at https://gadm.org/data.html web site and can be downloaded from there. Once downloaded, they can be read into R as "SpatialPolygonsDataFrame" objects. The levels of administrative areas are indicated by numbers, starting from 0, which stands for the admin0 level borders, or the outer borders of the country itself. Then the counties and cities follow the admin1 and admin2 areas and so on. 
+
+The DHS jittering scheme is applied by respects the administrative area borders, meaning that the jittered location has to stay within the administrative area in which the true cluster center was initially located within. Otherwise, the jittering needs to be repeated until this condition is satisfied. The level of the administrative areas that are being respected can be different in different cases. Information related to this can be found in the corresponding README.txt (it is called "GPS_Displacement_README.txt" for the Nigeria 2018 survey, can be different elsewhere) file of the corresponding DHS data set.
+
+We need to have two shape files for the nalyses. The first one is the admin0 shape file, referring to the national level (or outer) borders of the country of interest. The second one is the subnational shape file that corresponds to the borders of the administrative level that is respected while the true coordinates are jittered. Here is an example for Nigeria:
+
+```{r eval=FALSE}
+library(rgdal)
+
+# admin0 (country level) borders
+admin0 = readOGR(dsn = "~/Desktop/dataFiles/gadm40_NGA_shp",
+                            layer = "gadm40_NGA_0")
+
+# admin2 borders, which are respected while the true coordinates are being jittered:
+
+admin2 = readOGR(dsn = "~/Desktop/dataFiles/gadm40_NGA_shp",
+                     layer = "gadm40_NGA_2")
+```
+We will remove 160th polygon from admin2 object. This polygon corresponds to the borders of a lake and we wouldn't want to make predictions for the coordinates within a lake.
+```{r eval=FALSE}
+admin2 = admin2[-160,]
+```
+
+### Demography (Survey Data)
+
+Access to the DHS survey data sets require permission. The permission can be requested by following through the steps that are explained on DHS webpage (https://dhsprogram.com/data/Using-DataSets-for-Analysis.cfm#CP_JUMP_14037). Once the data files are obtained, the relevant ".DTA" file can be read using haven::read_dta() function. Another relevant file containing the jittered cluster coordinates, the corresponding cluster ID numbers, their urban/rural classifications and the administrative area names, can be read as a "SpatialPointsDataFrame" object. These files can be further processed to extract the total number of survey participants (ns-the number of binomial trials) at each cluster and the number of them that are exposed to a certain risk of interest (ys-the number of successes). 
+
+Assume that we want to conduct a spatial analysis of the prevalence of secondary education completion among women aged 20–39 in 2018 based on the 2018 Nigeria DHS (NDHS2018) household survey [@NDHS2018]. Then we would extract the needed information for the analysis as follows:
+
+```{r eval = FALSE}
+# the file containing the individual level data (survey responses) :
+educationData = read_dta("NGIR7BDT/NGIR7BFL.DTA") 
+
+# the file containing the cluster level data (clusterID, cluster coordinates, urbanicity, etc.)
+corList = readOGR(dsn = "dataFiles/DHS/NG_2018_DHS_02242022_98_147470/NGGE7BFL", 
+                             layer = "NGGE7BFL")
+
+# extract cluster level information:
+smallGeo = data.frame(clusterIdx = corList$DHSCLUST, urban = corList$URBAN_RURA,
+                      long = corList$LONGNUM, lat = corList$LATNUM,
+                      admin1 = corList$ADM1NAME)
+
+#  extract individual level information:
+myData = data.frame(clusterIdx = educationData$v001, 
+                    householdIdx = educationData$v002,
+                    stratum = educationData$v023,
+                    age = educationData$v012,
+                    secondaryEducation = educationData$v106) # v106 : highest education level attended
+                                                             #    0 : no education
+                                                             #    1 : primary
+                                                             #    2 : secondary
+                                                             #   >2 : higher
+
+# subset it with respect to the age interval of interest:
+myData = subset(myData, age <= 39 & age >=20)
+
+# number of 20-39 years old women who completed secondary education in each household
+myData$ys = (myData$secondaryEducation>=2)+0
+
+# merge the cluster level data with the subsetted individual level data,
+# with respect to the cluster ID:
+myData = merge(myData, smallGeo, by = "clusterIdx")
+
+# add number of trials (for binomial response)
+myData$Ntrials = 1
+
+# aggregate the survey responses to the cluster centers
+answers_x = aggregate(myData$ys,
+                      by = list(clusterID = myData[, 1]),
+                      FUN = sum)
+
+answers_n= aggregate(myData$ys,
+                     by = list(clusterID = myData[, 1]),
+                     FUN = length)
+
+answers_joint = merge(answers_x, answers_n, by="clusterID")
+
+# now we have the total number of women participants within the age interval of interest (ns), 
+# for each cluster and the number of women among those who completed their secondary education (ys)
+colnames(answers_joint) = c("clusterID", "ys", "ns")
+
+# collecting everything into a main data set:
+
+nigeria.data = data.frame(clusterID = corList@data[["DHSCLUST"]], long = corList@coords[,1], lat = corList@coords[,2])
+
+# add ys and ns
+nigeria.data = merge(nigeria.data, answers_joint, by="clusterID", all=T)
+
+# add urbanicity:
+nigeria.data$urbanRuralDHS = corList@data[["URBAN_RURA"]]
+
+# add coordinates in kilometers
+nigeria.data$east = rep(NA, length(nigeria.data$long))
+nigeria.data$north = rep(NA, length(nigeria.data$long)) 
+
+nigeria.data[,c("east", "north")] = convertDegToKM(nigeria.data[,c("long", "lat")])
+
+# DHS jitters the locations by respecting admin2 borders in Nigeria. We need to see if there are
+# cluster centers that doesn't match with any of the admin2 areas:
+
+# we need to add polygon IDs (some shape files may have it already) :
+admin2@data[["OBJECTID"]] =1:774 # normally 775, but we removed one of them (160th polygon), 
+                                 # which was the lake
+
+# the cluster coordinates:
+latLon = cbind(nigeria.data[,"long"], nigeria.data[,"lat"])
+colnames(latLon) = c("long", "lat")
+latLon = SpatialPoints(latLon, proj4string=CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
+
+# see if the points (survey clusters) are within the polygons (admin2 areas) :
+check1 <- over(latLon, admin2, returnList = FALSE)
+
+# Drop rows which don't match with none of the admin2 areas. We will need them to match while 
+# creating the integration points later on.
+
+# see which ones don't return a match :
+which(is.na(check1$NAME_2))
+# [1]   48  122  205  848  857 1116 1122 1287 1328
+
+# drop the corresponding rows from the main data set :
+nigeria.data = nigeria.data[-c(48, 122,  205,  848,  857, 1116, 1122, 1287, 1328),]
+```
+At this point, the data set "nigeria.data" is composed of clusterID, cluster center coordinates in degrees (latitude, longitude), coordinates in kilometers (east, north), components of the binomal responses (ys and ns) and the urbanicity information of each cluster center ( as "U" or "R"). Since the DHS survey data is not available unless a permission is granted, we will use an example data set instead, for the further steps. The data set is called "countryData" and has the columns with the same names as "nigeria.data". 
+
+```{r eval=FALSE}
+countryData = load("countryData") 
+```
+
+### The SPDE Approach
+
+For each cluster $c$, the true location $\boldsymbol{s}_c^*$ is not known, and the observation model involves the spatial field $u(\cdot)$ at all locations that are compatible with the jittered location $\boldsymbol{s}_c$. The stochastic partial differential equations (SPDE) approach [@Lindgren:etal:11] provides an approximation to the Matérn GRF that results in a sparse precision matrix. First, the area of interest is triangulated with a triangulation consisting of $m$ nodes. Then the GRF $u(\cdot)$ is approximated by
+\begin{equation}
+\tilde{u}(\boldsymbol{s}) = \sum_{i=1}^m w_i \phi_i(s),\label{eq:SPDE:basis}
+\end{equation}
+where $\phi_i(\cdot)$ are pyramidal basis functions and  $\boldsymbol{w} = (w_1 \ \ldots \ w_m)^\mathrm{T}$
+are weights for the basis functions. The SPDE approach results in a distribution $\boldsymbol{w}\sim\mathcal{N}_m(\boldsymbol{0}, \mathbf{Q}(\boldsymbol{\theta})^{-1})$, where $\mathbf{Q}(\boldsymbol{\theta})$ is sparse.
+
+#### The Mesh
+
+We will construct the triangulation mesh based on the admin0 borders (in form of a SpatialPolygonsDataFrame object) of the country of interest. It is possible to manipulate the mesh resolution by setting the arguments max.edge and offset accordingly. 
+
+```{r eval=FALSE}
+mesh.s = meshCountry(admin0 = admin0, max.edge = c(25, 50), offset=-.08)
+
+# It might be a good idea to plot the mesh and the country borders together:
+
+pdf("~/Desktop/mesh.pdf", width = 25, height = 14) # Open a new pdf file
+plot(mesh.s)
+plot(admin0, border = "red", add=TRUE)
+dev.off() 
+
+```
+
+To be able to estimate the model parameters, first we need to prepare a list of items that will be required as input by the Template Model Builder (TMB). We use "prepare_input" function to prepare the mentioned list. 
+
+#### Preparing inputs for estimation
+```{r eval = FALSE}
+# the example data set :
+
+# We will use only the population density as the covariate in the model. This can be downloaded
+# as a .tif file from WorldPop and then converted into a raster as follows:
+
+library(wpgpDownloadR)
+r <- wpgpGetCountryDataset(ISO3 = "NGA",
+                               covariate = "ppp_2015",
+                               destDir ="the folder destination path goes here")
+
+r = raster::raster("nga_ppp_2015.tif")
+plot(r)
+
+# making a list for the binomial response
+response = list(ys = countryData$ys,
+               ns = countryData$ns)
+
+# Setting the initial values :
+intercept = logit(0.5)
+sigma.cluster = 0 # this is the nugget variance, currently we don't have a nugget in the model
+sigma = 1.74      # marginal variance
+range = 114       # spatial range in kilometers
+
+
+# Collecting these initial values into a list called "modelParams":
+modelParams = list(intercept = intercept,
+                               range = range,  
+                               sigma = sigma,
+                               sigma.cluster = sigma.cluster)
+
+
+# coordinates of the example survey cluster centers in kilometers
+
+locObs =cbind(countryData[["east"]], countryData[["north"]])  # example coordinates of the survey clusters
+                                                              # in real data set, this would correspond to the 
+                                                              # DHS survey cluster centers, converted to kilometers
+                       
+# Setting the other arguments                                         
+likelihood = 1 # binomial likelihood
+jScale = 1 # represents the default DHS maximum jittering distances
+urban = countryData$urbanRural # shows the urbanicity classification of each cluster center. Takes "U" 
+                               # if the cluster center is located within an urban area and takes "R" 
+                               # if the cluster center is located within a rural area
+
+
+
+adminMap = admin2
+covariateData = r 
+
+# arguments that will be used while constructing the Penalized Complexity (PC) priors
+USpatial = 1
+alphaSpatial = 0.05
+
+# and finally constructing the data input list:
+Data = prepareData(response=response, locObs=locObs, modelParams=modelParams, likelihood = likelihood, 
+              jScale=jScale, urban = urban, mesh.s = mesh.s, adminMap=adminMap, nSubAPerPoint=10, 
+              nSubRPerPoint=10, testMode=FALSE, covariateData=covariateData)
+```
+The function creates a set of integration points around each cluster center, the cluster center itself 
+being the first integration point. Then the function:
+
+* Calculates weights corresponding to each integration point, 
+* Creates the number of observations (y_i) out of the number of exposures ((y_i (the number of successes) out of (n_i) separately for the rural and urban integration points,
+* Extracts the covariate values from each covariate raster at locations corresponding to the coordinates of the integration points 
+* Builds separate design matrices for urban and rural locations
+* Constructs two projection matrices seperately for the urban and rural locations. 
+
+The data list created by this function contains the spde components as well. The final data input list looks like the following :
+
+```{r eval = FALSE} 
+  data <- list(num_iUrban,  # Total number of urban observations
+               num_iRural,  # Total number of rural observations
+               num_s, # num. of vertices in SPDE mesh
+               y_iUrban, # num. of pos. urban obs in the cluster
+               y_iRural, # num. of pos. rural obs in the cluster
+               n_iUrban,  # num. of urban exposures in the cluster
+               n_iRural,  # num. of rural exposures in the cluster
+               n_integrationPointsUrban, # num. of urban integration points
+               n_integrationPointsRural, # num. of rural integration points
+               wUrban = wUrban, # urban weights
+               wRural = wRural, # rural weights
+               X_betaUrban = desMatrixJittUrban,
+               X_betaRural = desMatrixJittRural,
+               M0, # = spde[['param.inla']][['M0']], # SPDE sparse matrix
+               M1, # = spde[['param.inla']][['M1']], # SPDE sparse matrix
+               M2, # = spde[['param.inla']][['M2']], # SPDE sparse matrix
+               AprojUrban,  # Projection matrix (urban)
+               AprojRural,  # Projection matrix (rural)
+               options = c(1, ## if 1, use normalization trick
+                           1), ## if 1, run adreport
+               flag1 = 1, # normalization flag.
+               flag2 = flag2, #(0/1 for Gaussian/Binomial)
+  )
+
+```
+
+## ESTIMATING THE MODEL PARAMETERS
+
+We use "estimateModel" function to estimate the model parameters, namely the intercept, coefficients of the covariates, spatial range, marginal variance and if the model has a nugget, then also the nugget standard deviation. The main input that the function needs is the list called "data", which we have just created above. Besides that, the function requires a list related to the priors and another list of options to decide which model components should be adjusted for jittering.
+
+The list "options" should have two arguments, namely, "random" and "covariates", each referring to the corresponding model component. We turn the option of accounting for jittering on and off by setting each one of those argument to either 1 or zero, respectively. It is also possible to not adjust for jittering at all, by setting both to zero. 
+
+If one wants to try the approach which suggests using smoothed covariate rasters, instead of using the autodifferentiation of TMB, then both arguments needs to be set to zero again. Because that method does not account for jittering in the sense that our method does. 
+
+The list called "priors" contains the values that will be used to create PC priors for the spatial range and marginal variance and the Gaussian priors for the intercept and the coefficients of the covariates. The argument "beta" should be a vector of two values, where the first one is the mean and the second one is the standard deviation for the Gaussian prior. The second argument "range" represents the median spatial range in kilometers for the PC (Penalized-complexity) priors. We recommend choosing this value as the 10% of the longest distance (in kilometers) between the points along the borders of the corresponding country.
+
+
+```{r eval = FALSE}
+est = estimateModel(data = data, 
+                    options = list(random = 1, covariates = 1), # we want to account for jittering in both
+                    priors = list(beta = c(0,1), range = 114))
+
+# The "estimateModel" function creates a list of two elements. The first element of the list is called "res" (short for results) and contains the values of the model parameter estimates. The second element of the list is called "obj". This is the product of running TMB and it is created by "MakeADFun" function of TMB. We output this from the function since it will be needed as an input for the prediction step. 
+```
+
+## PREDICTIONS WITH THE MODEL
+
+### Creating prediction points from a grid 
+
+Once the model parameters are estimated, the next step will be to make predictions at new locations using our model. In this section we will first show how to construct a grid of points with respect to the bounding box (bbox) of the SpatialPolygonsDataFrame which represents the borders of the country of interest. Then we will chose certain number of points from them randomly. These are done by the "gridCountry" function to create a set of prediction locations and obtain their coordinates both in degrees and in kilometers.
+
+```{r eval = FALSE}
+
+predCoord = gridCountry(admin0 = NULL, m = NULL, n = NULL, nPred = NULL)
+
+```
+
+### Predictions at the new prediction points
+
+Previously we estimated the model parameters using "estimateModel" function and the function created an output object called "obj", besides the parameter estimates. We will now use this TMB object to make predictions at the set of prediction points that we have just created. We use "predRes" function for the predictions. The function needs the TMB object ("obj") and the coordinates of the prediction points in kilometers.
+
+```{r eval=FALSE}
+
+predictions = predRes(obj = est[["obj"]], predCoords = predCoords)
+
+```
+
+
+
+
+
+
+
