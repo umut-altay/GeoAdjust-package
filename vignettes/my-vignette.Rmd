@@ -54,68 +54,63 @@ where $r_c$ denotes the risk of interest in cluster $c$, and $\mathrm{Urb}[c]\in
 In this observation model, both $y_c$ and $\boldsymbol{s}_c$ are already available within the DHS data set and accordingly, treated as the observed quantities. The unobserved true locations $s_c^*$ on the oether hand, are inaccesible and they are treated as random quantities and assigned a uniform prior $s_c^*\sim \mathcal{U}(\mathcal{D})$. This implies that we treat all locations $\boldsymbol{s}_c^*$ within the maximum jittering distance from $\boldsymbol{s}_c$ as equally likely \emph{a priori}, meaning that the true location can be located anywhere within the corresponding jittering radius with equal probability.
 
 ## DATA PREPARATION
-The survey data consists of both demographic and geographic components. The demographic data is a Stata file that mainly contains the responses of the participants to the survey. The file has a variable indicating the corresponding cluster ID of each data row. The geographic data is a shape file. It contains cluster identification information such as their jittered latitudes and longitudes (in degrees), cluster ID, corresponding strata ("R" for rural and "U" for urban) and the name of the administrative area that they are located within. Since the cluster ID is the common variable of both demographic and geographic data files, it is useful while merging them into a single data frame. 
+The survey data consists of both individual level and cluster level information. The individual level data is a Stata file that mainly contains the responses of the participants to the survey. The file has a variable indicating the corresponding cluster ID of each data row as well. The cluster level data is a shape file. It contains cluster identification information such as their jittered latitudes and longitudes (in degrees), cluster ID, corresponding strata ("R" for rural and "U" for urban) and the name of the administrative area that they are located within. Since the cluster ID is a common variable in both files, it is useful while merging them into a single data frame. 
 
-It is not possible to share DHS data publicly, therefore the real survey data will not be processed through the examples in this vignette. Instead, an example data set that is generated specifically in order to mimic the DHS data structure will be used. On the other hand, it might still be potentially useful to show how to extract demographic and geographic data and merge them into a single data frame. It might save time for the users of the package to follow through the steps quickly and obtain the variables of interest. We will show how to do it based on the Nigeria 2018 DHS survey and please note that the data file names and variable names might differ in other surveys.
+It is not possible to share DHS data publicly, therefore the real survey data will not be processed through this vignette. Instead, an example data set that is generated specifically in order to mimic the DHS data structure will be used. On the other hand, it might still be potentially useful to show how to extract individual and cluster level data and merge them into a single data frame. It might save time for the users of the package to follow through the steps quickly and obtain the variables of interest. We will show how to do it based on the Nigeria 2018 DHS survey and please note that the data file names and variable names might differ in other surveys.
 
-The analysis needs 
+Lastly, two more shape files are needed. One of them is the shape file that contains the national (admin0) level borders of the country of interest. The second one should contain the borders that correspond to the administrative level areas with respect to which the true cluster centers are jittered. Shape files of various administrative levels for different countries are available at the  website of "the Database of Global Administrative Areas (GADM)" (https://gadm.org/data.html). Once downloaded, the files can be read into R as "SpatialPolygonsDataFrame" objects.
 
-### Geography 
+Assume that we want to estimate the risk of completing secondary education among 20-39 years old women throughout Nigeria. Following is the demonstration for first extracting and then merging the individual and cluster level data, based on the Nigeria DHS 2018 (NDHS-2018) household survey file and variable names:
 
-The first step of the data preparation is to download and read the shape files that will be used through the analysis. Border shape files of various  administrative area levels for different countries are available at https://gadm.org/data.html web site and can be downloaded from there. Once downloaded, they can be read into R as "SpatialPolygonsDataFrame" objects. The levels of administrative areas are indicated by numbers, starting from 0, which stands for the admin0 level borders, or the outer borders of the country itself. Then the counties and cities follow the admin1 and admin2 areas and so on. 
-
-The DHS jittering scheme is applied by respecting the administrative area borders, meaning that the jittered location has to stay within the administrative area in which the true cluster center was initially located within. Otherwise, the jittering needs to be repeated until this condition is satisfied. The level of the administrative areas that are being respected can be different in different cases. Information related to this can be found in the corresponding README.txt (it is called "GPS_Displacement_README.txt" for the Nigeria 2018 survey, can be different elsewhere) file of the corresponding DHS data set.
-
-We need to have two shape files for the analyses. The first one is the admin0 shape file, referring to the national level (or outer) borders of the country of interest. The second one is the subnational shape file that corresponds to the borders of the administrative level that is respected while the true coordinates are jittered. Here is an example for Nigeria:
+### Reading the shape files:
 
 ```{r eval=FALSE}
+# The shape files corresponding to the admin0 and admin2 borders :
 library(rgdal)
-
-# admin0 (country level) borders
 admin0 = readOGR(dsn = "~/Desktop/dataFiles/gadm40_NGA_shp",
                             layer = "gadm40_NGA_0")
 
-# admin2 borders, which are respected while the true coordinates are being jittered:
-
 admin2 = readOGR(dsn = "~/Desktop/dataFiles/gadm40_NGA_shp",
                      layer = "gadm40_NGA_2")
-```
-We will remove 160th polygon from admin2 object. This polygon corresponds to the borders of a lake and we wouldn't want to make predictions for the coordinates within a lake.
-```{r eval=FALSE}
-admin2 = admin2[-160,]
+
+admin2 = admin2[-160,] # removing the lake (contained in polygon 160)
 ```
 
-### Demography (Survey Data)
-
-Access to the DHS survey data sets require permission. The permission can be requested by following through the steps that are explained on DHS webpage (https://dhsprogram.com/data/Using-DataSets-for-Analysis.cfm#CP_JUMP_14037). Once the data files are obtained, the relevant ".DTA" file can be read using haven::read_dta() function. Another relevant file containing the jittered cluster coordinates, the corresponding cluster ID numbers, their urban/rural classifications and the administrative area names, can be read as a "SpatialPointsDataFrame" object. These files can be further processed to extract the total number of survey participants (ns-the number of binomial trials) at each cluster and the number of them that are exposed to a certain risk of interest (ys-the number of successes). 
-
-Assume that we want to conduct a spatial analysis of the prevalence of secondary education completion among women aged 20–39 in 2018 based on the 2018 Nigeria DHS (NDHS2018) household survey [@NDHS2018]. Then we would extract the needed information for the analysis as follows:
+### Reading the DHS files:
 
 ```{r eval = FALSE}
-# the file containing the individual level data (survey responses) :
+# Individual level data (survey responses) :
 educationData = read_dta("NGIR7BDT/NGIR7BFL.DTA") 
 
-# the file containing the cluster level data (clusterID, cluster coordinates, urbanicity, etc.)
+# Cluster level data (clusterID, cluster coordinates, urbanicity, etc.)
 corList = readOGR(dsn = "dataFiles/DHS/NG_2018_DHS_02242022_98_147470/NGGE7BFL", 
                              layer = "NGGE7BFL")
+```
 
+
+### Extracting data:
+
+```{r eval = FALSE}
 # extract cluster level information:
 smallGeo = data.frame(clusterIdx = corList$DHSCLUST, urban = corList$URBAN_RURA,
                       long = corList$LONGNUM, lat = corList$LATNUM,
                       admin1 = corList$ADM1NAME)
 
 #  extract individual level information:
-myData = data.frame(clusterIdx = educationData$v001, 
-                    householdIdx = educationData$v002,
-                    stratum = educationData$v023,
-                    age = educationData$v012,
+myData = data.frame(clusterIdx = educationData$v001,         # ID numbers of clusters
+                    householdIdx = educationData$v002,       # ID numers of households
+                    stratum = educationData$v023,            # stratum of the cluster (urban or rural)
+                    age = educationData$v012,                # age of the individual
                     secondaryEducation = educationData$v106) # v106 : highest education level attended
                                                              #    0 : no education
                                                              #    1 : primary
                                                              #    2 : secondary
                                                              #   >2 : higher
+```
 
-# subset it with respect to the age interval of interest:
+### Subsetting and merging data:
+```{r eval = FALSE}
+# subset data with respect to the age interval of interest:
 myData = subset(myData, age <= 39 & age >=20)
 
 # number of 20-39 years old women who completed secondary education in each household
@@ -137,13 +132,15 @@ answers_n= aggregate(myData$ys,
                      by = list(clusterID = myData[, 1]),
                      FUN = length)
 
+# merge
 answers_joint = merge(answers_x, answers_n, by="clusterID")
 
 # now we have the total number of women participants within the age interval of interest (ns), 
 # for each cluster and the number of women among those who completed their secondary education (ys)
 colnames(answers_joint) = c("clusterID", "ys", "ns")
+```
 
-# collecting everything into a main data set:
+### Collecting everything into a main data set:
 
 nigeria.data = data.frame(clusterID = corList@data[["DHSCLUST"]], long = corList@coords[,1], lat = corList@coords[,2])
 
