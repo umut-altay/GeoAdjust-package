@@ -140,14 +140,15 @@ answers_joint = merge(answers_x, answers_n, by="clusterID")
 colnames(answers_joint) = c("clusterID", "ys", "ns")
 ```
 
-### Collecting everything into a main data set:
-
+### Collecting everything into a main data frame:
+```{r eval = FALSE}
+# initial data frame
 nigeria.data = data.frame(clusterID = corList@data[["DHSCLUST"]], long = corList@coords[,1], lat = corList@coords[,2])
 
 # add ys and ns
 nigeria.data = merge(nigeria.data, answers_joint, by="clusterID", all=T)
 
-# add urbanicity:
+# add strata:
 nigeria.data$urbanRuralDHS = corList@data[["URBAN_RURA"]]
 
 # add coordinates in kilometers
@@ -155,24 +156,28 @@ nigeria.data$east = rep(NA, length(nigeria.data$long))
 nigeria.data$north = rep(NA, length(nigeria.data$long)) 
 
 nigeria.data[,c("east", "north")] = convertDegToKM(nigeria.data[,c("long", "lat")])
+```
 
-# DHS jitters the locations by respecting admin2 borders in Nigeria. We need to see if there are
-# cluster centers that doesn't match with any of the admin2 areas:
+### Fine tuning:
+```{r eval = FALSE}
+# jitterin ia done by respecting admin2 borders in Nigeria. 
+# see if there are  cluster centers that doesn't match with any of the admin2 areas:
 
-# we need to add polygon IDs (some shape files may have it already) :
-admin2@data[["OBJECTID"]] =1:774 # normally 775, but we removed one of them (160th polygon), 
-                                 # which was the lake
-
+# first, add polygon IDs (some shape files may have it already) :
+admin2@data[["OBJECTID"]] =1:774 # normally 775, we removed one (the lake)
+                                 
 # the cluster coordinates:
 latLon = cbind(nigeria.data[,"long"], nigeria.data[,"lat"])
 colnames(latLon) = c("long", "lat")
+
+# make a SpatialPoints object
 latLon = SpatialPoints(latLon, proj4string=CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
 
-# see if the points (survey clusters) are within the polygons (admin2 areas) :
+# see if the points (cluster centers) are within the polygons (admin2 areas) :
 check1 <- over(latLon, admin2, returnList = FALSE)
 
-# Drop rows which don't match with none of the admin2 areas. We will need them to match while 
-# creating the integration points later on.
+# drop the rows which don't match with none of the admin2 areas. 
+# we will need them to match while creating the integration points later on.
 
 # see which ones don't return a match :
 which(is.na(check1$NAME_2))
