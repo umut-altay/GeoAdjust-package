@@ -29,7 +29,9 @@ DHS applies jittering (small local random displacements) with respect to a known
 
 The random displacement leads the DHS coordinates to contain positional error. We recently discovered that the unaddressed positional error results in the model parameter estimates that are attenuated towards zero together with a poorer predictive performance [@altay2022accounting], [@altay2022covariates]. GeoAdjust package is constructed in order to provide useful computational tools which accounts for positional uncertainty in the GPS coordinates of the observed data. The package follows the methods that are developed and discussed in detail in [@altay2022accounting] and [@altay2022covariates].
 
+### Access to DHS Data
 
+DHS data sets are not openly available to the public. Access to relevant DHS survey data sets requires applying for permission. One needs to briefly and clearly explain why the data is needed and how it will be processed and used. Sharing the data sets with the collaborating researchers requires permission as well. Step by step explanation about the application process can be found in DHS website. Once the permission is granted, the applicant receives a letter via email, which clearly states the content of the permission.
 
 
 <!-- The methods included in GeoAdjust package utilize the auto-differentiation in Template Model Builder (TMB) R package. The approach involves creating a set of integration points within equidistant rings around each cluster center. Each cluster center is taken as the first integration point of the corresponding point set, and then depending on the urbanicity of the cluster, different number of rings are created together with their own sets of integration points. This approach allows us to consider the unknown true locations as the nuisance parameters in the model and then integrate them out by utilizing the auto differentiation of the Template Model builder (TMB) R-package. TMB operates via a C++ script which  contains the joint negative log-likelihood function and allows computing the contribution of each integration point to the joint negative log-likelihood. -->
@@ -37,7 +39,8 @@ The random displacement leads the DHS coordinates to contain positional error. W
 <!-- This package aims to provide fast and useful tools that allow doing inference and prediction while adjusting/accounting for the positional error in the GPS coordinates of the survey cluster centers. -->
 
 ## THE MODEL
-Let $\boldsymbol{s}_1^*, \ldots, \boldsymbol{s}_C^* \in\mathcal{D}$ denote the true locations of the cluster centers $\boldsymbol{s}_1, \ldots, \boldsymbol{s}_C$. The adjusted observation model is, 
+Assume that we want to estimate the risk of completing secondary education among 20-39 years old women throughout Nigeria. We call the locations that are indicated by the GPS coordinates of the centroids of each household cluster as the "true locations", whereas the published GPS coordinates of the cluster centers are refferred to as the "observed locations". These locations contain positional error due to being jittered, and in order to avoid the impact of its adverse effects on inference, we need to adjust for this error in our analysis. 
+Let $\boldsymbol{s}_1^*, \ldots, \boldsymbol{s}_C^* \in\mathcal{D}$ denote the true locations of the corresponding published DHS cluster centers $\boldsymbol{s}_1, \ldots, \boldsymbol{s}_C$. Adjusting for jittering yields the following observation model:
 \begin{align}
 \label{eqn:adjObsModel}
 \begin{split}
@@ -45,13 +48,17 @@ y_c | r_c,n_c &\sim \text{Binomial}(n_c, r_c), \quad \boldsymbol{s}_c|\boldsymbo
     r_c | \boldsymbol{s}_c^* &= r(\boldsymbol{s}_c^*) = \mathrm{logit}^{-1}( \eta(\boldsymbol{s}_c^*)),
 \end{split}
 \end{align}
-where $r_c$ is the risk in cluster $c$, and $\mathrm{Urb}[c]\in\{\mathrm{U}, \mathrm{R}\}$ corresponds to the cluster's urban (U) or rural (R) designation, for $c = 1, \ldots, C$. In this observation model, both $y_c$ and $\boldsymbol{s}_c$ are treated as observed quantities. The unobserved true locations $s_c^*$ are treated as random quantities and assigned a uniform prior $s_c^*\sim \mathcal{U}(\mathcal{D})$. This implies that we treat all locations $\boldsymbol{s}_c^*$ within the maximum jittering distance from $\boldsymbol{s}_c$ as equally likely \emph{a priori}.
+
+where $r_c$ denotes the risk of interest in cluster $c$, and $\mathrm{Urb}[c]\in\{\mathrm{U}, \mathrm{R}\}$ corresponds to the urban (U) or rural (R) stratum that cluster c is located within. 
+
+In this observation model, both $y_c$ and $\boldsymbol{s}_c$ are already available within the DHS data set and accordingly, treated as the observed quantities. The unobserved true locations $s_c^*$ on the oether hand, are inaccesible and they are treated as random quantities and assigned a uniform prior $s_c^*\sim \mathcal{U}(\mathcal{D})$. This implies that we treat all locations $\boldsymbol{s}_c^*$ within the maximum jittering distance from $\boldsymbol{s}_c$ as equally likely \emph{a priori}, meaning that the true location can be located anywhere within the corresponding jittering radius with equal probability.
 
 ## DATA PREPARATION
+The survey data set consists of both demographic and geographic components. The demographic data contains the responses of the participants to the survey. The data set includes a variable indicating the corresponding cluster ID of each data row, which takes place in the geographic part as well.   
 
 ### Geography 
 
-The first step of the data preparation is to download and read the shape files that will be used through the analysis.. Border shape files of various  administrative area levels for different countries are available at https://gadm.org/data.html web site and can be downloaded from there. Once downloaded, they can be read into R as "SpatialPolygonsDataFrame" objects. The levels of administrative areas are indicated by numbers, starting from 0, which stands for the admin0 level borders, or the outer borders of the country itself. Then the counties and cities follow the admin1 and admin2 areas and so on. 
+The first step of the data preparation is to download and read the shape files that will be used through the analysis. Border shape files of various  administrative area levels for different countries are available at https://gadm.org/data.html web site and can be downloaded from there. Once downloaded, they can be read into R as "SpatialPolygonsDataFrame" objects. The levels of administrative areas are indicated by numbers, starting from 0, which stands for the admin0 level borders, or the outer borders of the country itself. Then the counties and cities follow the admin1 and admin2 areas and so on. 
 
 The DHS jittering scheme is applied by respecting the administrative area borders, meaning that the jittered location has to stay within the administrative area in which the true cluster center was initially located within. Otherwise, the jittering needs to be repeated until this condition is satisfied. The level of the administrative areas that are being respected can be different in different cases. Information related to this can be found in the corresponding README.txt (it is called "GPS_Displacement_README.txt" for the Nigeria 2018 survey, can be different elsewhere) file of the corresponding DHS data set.
 
