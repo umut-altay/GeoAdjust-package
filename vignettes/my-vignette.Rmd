@@ -102,9 +102,9 @@ corList = readOGR(dsn = "path2",
 
 ```{r eval = FALSE}
 # extract cluster level information:
-smallGeo = data.frame(clusterIdx = clusterLevel$DHSCLUST, urban = clusterLevel$URBAN_RURA,
-                      long = as.vector(clusterLevel@coords[,1]), lat = as.vector(clusterLevel@coords[,2]),
-                      admin1 = clusterLevel$ADM1NAME)
+smallGeo = data.frame(clusterIdx = corList$DHSCLUST, urban = corList$URBAN_RURA,
+                      long = as.vector(corList@coords[,1]), lat = as.vector(corList@coords[,2]),
+                      admin1 = corList$ADM1NAME)
 
 #  extract individual level information:
 myData = data.frame(clusterIdx = educationData$v001,         # ID numbers of the clusters
@@ -152,7 +152,7 @@ colnames(answers_joint) = c("clusterID", "ys", "ns")
 ### Collecting everything into a main data frame:
 ```{r eval = FALSE}
 # initial data frame
-nigeria.data = data.frame(clusterID = corList@data[["DHSCLUST"]], long = corList@coords[,1], lat = corList@coords[,2])
+nigeria.data = data.frame(clusterID = corList@data[["DHSCLUST"]], long = as.vector(corList@coords[,1]), lat = as.vector(corList@coords[,2]))
 
 # add ys and ns
 nigeria.data = merge(nigeria.data, answers_joint, by="clusterID", all=T)
@@ -169,7 +169,7 @@ nigeria.data[,c("east", "north")] = convertDegToKM(nigeria.data[,c("long", "lat"
 
 ### Fine tuning:
 ```{r eval = FALSE}
-# jitterin ia done by respecting admin2 borders in Nigeria. 
+# jittering is done by respecting admin2 borders in Nigeria. 
 # see if there are  cluster centers that doesn't match with any of the admin2 areas:
 
 # first, add polygon IDs (some shape files may have it already) :
@@ -190,24 +190,20 @@ check1 <- over(latLon, admin2, returnList = FALSE)
 
 # see which ones don't return a match :
 which(is.na(check1$NAME_2))
+# integer(0)
+
+
+# This might not always be the case. If there were some non-matching rows,
+# then they would be dropped as follows:
+
+# which(is.na(check1$NAME_2))  # see the rows that don't match:
 # [1]   48  122  205  848  857 1116 1122 1287 1328
 
 # drop the corresponding rows from the main data set :
-nigeria.data = nigeria.data[-c(48, 122,  205,  848,  857, 1116, 1122, 1287, 1328),]
+#nigeria.data = nigeria.data[-c(48, 122,  205,  848,  857, 1116, 1122, 1287, 1328),]
 ```
 
-At this point the data frame "nigeria.data" should contain the variables that will be needed further in the analysis. Construction of this data frame was only for illustration purposes and it will not be used. Instead we will use an example data se  
-
-
-
-
-
-
-At this point, the data set "nigeria.data" is composed of clusterID, cluster center coordinates in degrees (latitude, longitude), coordinates in kilometers (east, north), components of the binomal responses (ys and ns) and the urbanicity information of each cluster center ( as "U" or "R"). Since the DHS survey data is not available unless a permission is granted, we will use an example data set instead, for the further steps. The data set is called "countryData" and has the columns with the same names as "nigeria.data". 
-
-```{r eval=FALSE}
-countryData = load("countryData") 
-```
+At this point the data frame "nigeria.data" should contain the variables that will be needed further in the analysis. 
 
 ### The SPDE Approach
 
