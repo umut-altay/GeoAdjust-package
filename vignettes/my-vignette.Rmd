@@ -8,6 +8,11 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+<style>
+body {
+text-align: justify}
+</style>
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -205,16 +210,19 @@ which(is.na(check1$NAME_2))
 
 At this point the data frame "nigeria.data" should contain the variables that will be needed further in the analysis. 
 
+
+
 ### The SPDE Approach
 
-For each cluster $c$, the true location $\boldsymbol{s}_c^*$ is not known, and the observation model involves the spatial field $u(\cdot)$ at all locations that are compatible with the jittered location $\boldsymbol{s}_c$. The stochastic partial differential equations (SPDE) approach [@Lindgren:etal:11] provides an approximation to the Matérn GRF that results in a sparse precision matrix. First, the area of interest is triangulated with a triangulation consisting of $m$ nodes. Then the GRF $u(\cdot)$ is approximated by
+We model the latent spatial part $u(\cdot)$ of the observation model as a Gaussian Random Field with a Matern covariance function. The stochastic partial differential equations (SPDE) approach [@Lindgren:etal:11] provides an approximation to the Matérn GRF that results in a sparse precision matrix. This is applied by first triangulating the area of interest through $m$ nodes and then approximating the GRF $u(\cdot)$ by:
+
 \begin{equation}
 \tilde{u}(\boldsymbol{s}) = \sum_{i=1}^m w_i \phi_i(s),\label{eq:SPDE:basis}
 \end{equation}
 where $\phi_i(\cdot)$ are pyramidal basis functions and  $\boldsymbol{w} = (w_1 \ \ldots \ w_m)^\mathrm{T}$
 are weights for the basis functions. The SPDE approach results in a distribution $\boldsymbol{w}\sim\mathcal{N}_m(\boldsymbol{0}, \mathbf{Q}(\boldsymbol{\theta})^{-1})$, where $\mathbf{Q}(\boldsymbol{\theta})$ is sparse.
 
-#### The Mesh
+#### Triangulation - The Mesh
 
 We will construct the triangulation mesh based on the admin0 borders (in form of a SpatialPolygonsDataFrame object) of the country of interest. It is possible to manipulate the mesh resolution by setting the arguments max.edge and offset accordingly. 
 
