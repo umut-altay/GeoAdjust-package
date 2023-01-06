@@ -7,7 +7,6 @@
 prepareData(
   response = NULL,
   locObs = NULL,
-  modelParams = NULL,
   likelihood,
   jScale = NULL,
   urban = NULL,
@@ -23,8 +22,6 @@ prepareData(
 \item{response}{A list containing the number of trials (ns) and number of successes (ys) for the binomial response, or a list containing the response values (ys) for the Gaussian response.}
 
 \item{locObs}{A matrix containing the coordinates of the already jittered survey cluster centers in kilometers}
-
-\item{modelParams}{A list containing the initial values for the range (spatial range), sigma (marginal variance) and the nugget standard deviation (sigma.cluster)}
 
 \item{likelihood}{A value indication which likelihood will be used. (1 for binomial and 0 for Gaussian)}
 

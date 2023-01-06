@@ -208,9 +208,7 @@ which(is.na(check1$NAME_2))
 #nigeria.data = nigeria.data[-c(48, 122,  205,  848,  857, 1116, 1122, 1287, 1328),]
 ```
 
-At this point the data frame "nigeria.data" should contain the variables that will be needed further in the analysis. 
-
-
+At this point the data frame `nigeria.data` should contain the variables that will be needed further in the analysis. 
 
 ### The SPDE Approach
 
@@ -228,25 +226,32 @@ We will construct the triangulation mesh based on the admin0 borders (in form of
 
 ```{r eval=FALSE}
 mesh.s = meshCountry(admin0 = admin0, max.edge = c(25, 50), offset=-.08)
-
-# It might be a good idea to plot the mesh and the country borders together:
-
+```
+It might be useful to visually check by plotting the mesh and the country borders together:
+```{r eval=FALSE}
 pdf("~/Desktop/mesh.pdf", width = 25, height = 14) # Open a new pdf file
-plot(mesh.s)
+plot(mesh.s, cex.main=5)
 plot(admin0, border = "red", add=TRUE)
 dev.off() 
 
 ```
+![Mesh and the admin0 borders](/Users/umuta/GeoAdjust/vignettes/mesh.png){ width=100% }
 
-To be able to estimate the model parameters, first we need to prepare a list of items that will be required as input by the Template Model Builder (TMB). We use "prepare_input" function to prepare the mentioned list. 
+### Estimating Model Parameters
+Our method of accounting/adjusting for positional uncertainty is based on approaching the unkown true locations as nuisance parameters and integrating them out of the joint maximum likelihood function. This can be seen more clearly by writing the observation model as follows:
+
+\begin{align}
+    \pi(y_c, \boldsymbol{s}_c|\eta(\cdot)) &= \int_{\mathbb{R}^2} \pi(y_c, \boldsymbol{s}_c| \eta(\cdot), \boldsymbol{s}_c^*) \pi(\boldsymbol{s}_c^*) \ \mathrm{d}\boldsymbol{s}_c^* \notag \\
+    &= \int_{\mathbb{R}^2} \pi(y_c| \eta(\boldsymbol{s}_c^*)) \pi_{\mathrm{Urb}[c]}(\boldsymbol{s}_c| \boldsymbol{s}_c^*) \pi(\boldsymbol{s}_c^*) \ \mathrm{d}\boldsymbol{s}_c^*, \label{eq:adjObsMod2}
+\end{align}
+
+for $c = 1, \ldots, C$. This formulation suggests that we can avoid sampling the true locations with an MCMC approach. Further technical details can be found in the supplementary materials section of [@altay2022accounting]. We apply the method and estimate the parameters in the model by utilizing autodifferentiation feature of Template Model Builder (TMB) package [@JSSv070i05]. 
 
 #### Preparing inputs for estimation
+We need to prepare a list of input items that needs to be passed into the C++ script of TMB. The list can be prepared by using "prepare_input" function. In this example we use only one covariate, which is the population density. The function allows having more than one covariates as well. The file containing the population density data can be downloaded and converted into a raster object as follows:
+
+
 ```{r eval = FALSE}
-# the example data set :
-
-# We will use only the population density as the covariate in the model. This can be downloaded
-# as a .tif file from WorldPop and then converted into a raster as follows:
-
 library(wpgpDownloadR)
 r <- wpgpGetCountryDataset(ISO3 = "NGA",
                                covariate = "ppp_2015",
@@ -255,59 +260,78 @@ r <- wpgpGetCountryDataset(ISO3 = "NGA",
 r = raster::raster("nga_ppp_2015.tif")
 plot(r)
 
+```
+
+We start by setting the initial prameter values:
+
+
+
+
+The first argument that the function `prepare_input` needs is the response variable. This analysis is done based on a binomial response variable and accordingly we need to pass both the number of binomial trials and the number of successes for each cluster. Here the number of binomial trials is denoted by ns and it shows the total number of 20-39 years old women in each cluster. The number of successes is denoted by ys and it stands for the number of 20-39 years old women who completed their secondary education in each cluster. If the response variable was Gaussian, then the list called "response" would contain only one element, which is ys, a vector of Gaussian response values.
+```{r eval = FALSE}
 # making a list for the binomial response
-response = list(ys = countryData$ys,
-               ns = countryData$ns)
-
-# Setting the initial values :
-intercept = logit(0.5)
-sigma.cluster = 0 # this is the nugget variance, currently we don't have a nugget in the model
-sigma = 1.74      # marginal variance
-range = 114       # spatial range in kilometers
+response = list(ys = nigeria.data$ys,
+               ns = nigeria.data$ns)
+```
 
 
-# Collecting these initial values into a list called "modelParams":
-modelParams = list(intercept = intercept,
-                               range = range,  
-                               sigma = sigma,
-                               sigma.cluster = sigma.cluster)
 
 
-# coordinates of the example survey cluster centers in kilometers
+<!-- # Setting the initial values : -->
+<!-- intercept = logit(0.5) -->
+<!-- sigma.cluster = 0 # this is the nugget variance, currently we don't have a nugget in the model -->
+<!-- sigma = 1.74      # marginal variance -->
+<!-- range = 114       # spatial range in kilometers -->
 
+<!-- # Collecting these initial values into a list called "modelParams": -->
+<!-- modelParams = list(intercept = intercept, -->
+<!--                                range = range,   -->
+<!--                                sigma = sigma, -->
+<!--                                sigma.cluster = sigma.cluster) -->
+
+
+Coordinates of the survey cluster centers should be passed in kilometers, so that the function can locate the rings and the integration points around them: 
+
+```{r eval = FALSE}
 locObs =cbind(countryData[["east"]], countryData[["north"]])  # example coordinates of the survey clusters
                                                               # in real data set, this would correspond to the 
                                                               # DHS survey cluster centers, converted to kilometers
-                       
-# Setting the other arguments                                         
+```
+ 
+Setting the other arguments:
+```{r eval = FALSE}
 likelihood = 1 # binomial likelihood
 jScale = 1 # represents the default DHS maximum jittering distances
 urban = countryData$urbanRural # shows the urbanicity classification of each cluster center. Takes "U" 
                                # if the cluster center is located within an urban area and takes "R" 
                                # if the cluster center is located within a rural area
+adminMap = admin2              # SpatialPolygonsDataFrame object that contains
+                               # the administrative borders that are respected
+                               # while jittering is done
+covariateData = r              # a raster that contains covariate data
+                               # covariates should pass into the function as raster objects
+```
 
-
-
-adminMap = admin2
-covariateData = r 
-
-# arguments that will be used while constructing the Penalized Complexity (PC) priors
+Arguments that will be used while constructing the spde object:
+```{r eval = FALSE}
 USpatial = 1
 alphaSpatial = 0.05
+```
 
-# and finally constructing the data input list:
-Data = prepareData(response=response, locObs=locObs, modelParams=modelParams, likelihood = likelihood, 
+And finally constructing the data input list:
+```{r eval = FALSE}
+Data = prepare_input(response=response, locObs=locObs, likelihood = likelihood, 
               jScale=jScale, urban = urban, mesh.s = mesh.s, adminMap=adminMap, nSubAPerPoint=10, 
               nSubRPerPoint=10, testMode=FALSE, covariateData=covariateData)
 ```
 The function creates a set of integration points around each cluster center, the cluster center itself 
 being the first integration point. Then the function:
 
-* Calculates weights corresponding to each integration point, 
-* Creates the number of observations (y_i) out of the number of exposures ((y_i (the number of successes) out of (n_i) separately for the rural and urban integration points,
-* Extracts the covariate values from each covariate raster at locations corresponding to the coordinates of the integration points 
+* Calculates weights corresponding to each integration point
+* Creates the number of observations (y_i) out of the number of exposures (n_i) separately for the rural and urban integration points
+* Extracts the covariate values from each covariate raster at locations corresponding to the coordinates of the integration points
 * Builds separate design matrices for urban and rural locations
-* Constructs two projection matrices seperately for the urban and rural locations. 
+* Constructs two projection matrices seperately for the urban and rural locations
 
 The data list created by this function contains the spde components as well. The final data input list looks like the following :
 

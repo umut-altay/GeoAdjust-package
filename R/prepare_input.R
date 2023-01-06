@@ -2,7 +2,6 @@
 #'
 #' @param response A list containing the number of trials (ns) and number of successes (ys) for the binomial response, or a list containing the response values (ys) for the Gaussian response.
 #' @param locObs A matrix containing the coordinates of the already jittered survey cluster centers in kilometers
-#' @param modelParams A list containing the initial values for the range (spatial range), sigma (marginal variance) and the nugget standard deviation (sigma.cluster)
 #' @param likelihood A value indication which likelihood will be used. (1 for binomial and 0 for Gaussian)
 #' @param jScale Jittering scale, where 1 represents the default DHS jittering scheme
 #' @param urban A vector containing the urbanization classification of the administrative area that each cluster center is initially located within. (U for urban and R for rural)
@@ -18,15 +17,12 @@
 #' testMode=FALSE, covariateData, rangeMaternPri)
 #' @export
 #' @import INLA
-prepareData = function(response=NULL, locObs=NULL, modelParams=NULL, likelihood, jScale=NULL, urban=NULL, mesh.s=NULL,
+prepareData = function(response=NULL, locObs=NULL, likelihood, jScale=NULL, urban=NULL, mesh.s=NULL,
                          adminMap=NULL, nSubAPerPoint=10, nSubRPerPoint=10, testMode=FALSE,
                          covariateData=NULL){
 
   # extract arguments
-  #USpatial = otherValues[["USpatial"]]
-  #alphaSpatial = otherValues[["alphaSpatial"]]
   flag2 = likelihood
-  range = modelParams[["range"]]
 
   # number of observed locations
   nLoc = length(locObs[,1])
@@ -168,8 +164,6 @@ prepareData = function(response=NULL, locObs=NULL, modelParams=NULL, likelihood,
                # normalization flag.
                flag1 = 1,
                flag2 = flag2 #(0/1 for Gaussian/Binomial)
-               #beta_pri = c(0, 5), ## normal
-               #matern_pri = c(rangeMaternPri, 0.5, USpatial = USpatial , alphaSpatial = alphaSpatial)
   )
 
   return(list(data = data, mesh.s = mesh.s))
