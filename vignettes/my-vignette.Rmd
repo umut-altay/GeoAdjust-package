@@ -1,17 +1,22 @@
 ---
-title: "GeoAdjust"
+title: "GeoAdjust : Adjusting for Positional Uncertainty in DHS Household Surveys"
 output: rmarkdown::html_vignette
 bibliography: /Users/umuta/GeoAdjust/references.bib
 vignette: >
   %\VignetteIndexEntry{GeoAdjust}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  
+  header-includes:
+    - \usepackage{hyperref}y
 ---
 
 <style>
 body {
 text-align: justify}
 </style>
+
+
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -24,6 +29,7 @@ knitr::opts_chunk$set(
 library(GeoAdjust)
 ```
 
+## ABSTRACT
 
 ## INTRODUCTION
 
@@ -32,7 +38,11 @@ DHS wants to make sure that the privacy of the survey participants is protected 
 
 DHS applies jittering (small local random displacements) with respect to a known jittering algorithm. The algorithm basically involves first choosing a uniform random angle between 0 and $2\pi$ and then shifting the true location up to a certain maximum distance towards the corresponding direction. Accordingly, the urban cluster centers are displaced up to 2 kilometers while the rural ones are jittered up to 5 kilometers, with %1 of them being jittered up to 10 kilometers [@DHSspatial07]. The jittering is done by respecting the administrative area borders, meaning that the jittered location is not allowed to end up in an administrative area that is different from the initial one. Jittering is repeated until this condition is satisfied. Administrative areas are classified into levels. The first level which is eather called the "national level" or usually coded as "admin0" represents the natinal borders of the country. Then the subnational levels follows either as counties, provinces, etc., or as admin1, admin2, etc. It is important to be aware that the jittering can be done with respect to different admin levels in different countries. The information about this can be found in the corresponding README.txt (it is called "GPS_Displacement_README.txt" for the Nigeria 2018 survey, might be different elsewhere) file of the corresponding DHS data set. 
 
-The random displacement leads the DHS coordinates to contain positional error. We recently discovered that the unaddressed positional error results in the model parameter estimates that are attenuated towards zero together with a poorer predictive performance [@altay2022accounting], [@altay2022covariates]. GeoAdjust package is constructed in order to provide useful computational tools which account for positional uncertainty in the GPS coordinates of the observed data. The package follows the methods that are developed and discussed in detail in [@altay2022accounting] and [@altay2022covariates].
+The random displacement leads the DHS coordinates to contain positional error. We recently discovered that the unaddressed positional error results in the model parameter estimates that are attenuated towards zero together with a poorer predictive performance [@altay2022accounting], [@altay2022covariates]. GeoAdjust package is constructed in order to provide useful computational tools which account for positional uncertainty in the GPS coordinates of the observed data. The package follows the methods that are developed and discussed in detail in [@altay2022accounting] and [@altay2022covariates]. 
+
+
+![package workflow](/Users/umuta/GeoAdjust/vignettes/workflow.png){ width=100% }
+
 
 ### Access to DHS Data
 
@@ -43,7 +53,7 @@ DHS data sets are not openly available to the public. Access to relevant DHS sur
 
 <!-- This package aims to provide fast and useful tools that allow doing inference and prediction while adjusting/accounting for the positional error in the GPS coordinates of the survey cluster centers. -->
 
-## THE MODEL
+## The Adjusted Model
 Assume that we want to estimate the risk of completing secondary education among 20-39 years old women throughout Nigeria. We call the true GPS coordinates of the centroids of each household cluster as the "true locations", whereas the published GPS coordinates of the cluster centers are referred as the "observed locations". These locations contain positional error due to being jittered. We need to adjust for this, in order to avoid its adverse impact on inference.
 
 Let $\boldsymbol{s}_1^*, \ldots, \boldsymbol{s}_C^* \in\mathcal{D}$ denote the true locations of the corresponding published DHS cluster centers $\boldsymbol{s}_1, \ldots, \boldsymbol{s}_C$. Adjusting for jittering yields the following observation model:
@@ -59,7 +69,13 @@ where $r_c$ denotes the risk of interest in cluster $c$, and $\mathrm{Urb}[c]\in
 
 In this observation model, both $y_c$ and $\boldsymbol{s}_c$ are already available through the DHS data set and accordingly, treated as the observed quantities. The unobserved true locations $s_c^*$ on the other hand, are inaccessible. They are treated as the random quantities and assigned a uniform prior $s_c^*\sim \mathcal{U}(\mathcal{D})$. This implies that we treat all locations $\boldsymbol{s}_c^*$ within the maximum jittering distance from $\boldsymbol{s}_c$ as equally likely \emph{a priori}, meaning that the true location can be located anywhere within the corresponding jittering radius with equal probability.
 
-## DATA PREPARATION
+## Adjustments for Gaussian and Poisson Likelihoods
+
+
+
+
+
+## Data Preparation
 The survey data consists of both individual level and cluster level information. The individual level data is a Stata file that mainly contains the responses of the participants to the survey. The file has a variable indicating the corresponding cluster ID of each data row. The cluster level data is a shape file. It contains cluster identification information such as their jittered latitudes and longitudes (in degrees), cluster ID, corresponding strata ("R" for rural and "U" for urban) and the name of the administrative area that they are located within. Since the cluster ID is a common variable in both files, it will be useful while merging them into a single data frame. 
 
 It is not possible to share DHS data publicly, therefore the real survey data will not be processed through this vignette. Instead, an example data set will be used. Similar to the Nigeria DHS 2018 household survey (NDHS-2018) data files, the example data set consist of a Stata file and a shape file.
@@ -68,18 +84,11 @@ Additionally, two more shape files are needed. One of them is the shape file tha
 
 Assume that we want to estimate the risk of completing secondary education among 20-39 years old women throughout Nigeria. Following is the demonstration for first extracting and then merging the individual and cluster level data, based on the Nigeria DHS 2018 (NDHS-2018) household survey file and variable names:
 
+
+
 ### Reading the shape files of administrative area borders:
 
 ```{r eval=FALSE}
-
-# find the path to the example files:
-system.file("extdata", "individualLevel.DTA", package = "GeoAdjust", mustWork = TRUE)
-[1] "path1/individualLevel.DTA"
-
-system.file("extdata", "clusterLevel", package = "GeoAdjust", mustWork = TRUE)
-[1] "path2/clusterLevel"                # path2 is the path of the folder that
-                                        # contains the .shp file
-
 # the shape files corresponding to the admin0 and admin2 borders :
 library(rgdal)
 admin0 = readOGR(dsn = "dataFiles/gadm40_NGA_shp",
@@ -95,11 +104,18 @@ admin2 = admin2[-160,] # removing the lake (contained in polygon 160)
 
 ```{r eval = FALSE}
 library(haven)
+library(rgdal)
+# find the path to the example files:
+path1 = system.file("extdata", "individualLevel.DTA", package = "GeoAdjust", mustWork = TRUE)
+
+# path2 is the path of the folder that contains the .shp file
+path2 = system.file("extdata", "clusterLevel", package = "GeoAdjust", mustWork = TRUE)
+
 # individual level data (survey responses) :
-educationData = read_dta("path1") 
+educationData = read_dta(path1) 
 
 # cluster level data (clusterID, cluster center coordinates, strata, etc.)
-corList = readOGR(dsn = "path2", 
+corList = readOGR(dsn = path2, 
                              layer = "clusterLevel")
 ```
 
@@ -212,8 +228,17 @@ which(is.na(check1$NAME_2))
 #nigeria.data = nigeria.data[-c(48, 122,  205,  848,  857, 1116, 1122, 1287, 1328),]
 ```
 
-At this point the data frame `nigeria.data` should contain the variables that will be needed further in the analysis. 
-
+At this point the data frame `nigeria.data` should contain the variables that will be needed further in the analysis:
+```{r eval = FALSE}
+head(nigeria.data)
+  clusterID      long       lat ys ns urbanRuralDHS      east     north
+2         2  5.026532 13.432205  6 13             U -3386.003 1778.4821
+3         3  5.083481  9.119869 10 22             U -3453.243 1211.9216
+4         4 12.741408 12.668730 11 22             U -2446.272 1556.6579
+5         5  4.155791  7.600494 18 25             U -3596.095 1022.3455
+6         6  9.563798 11.676503 10 16             R -2846.535 1477.0920
+7         7  8.025037  7.104230  5 10             U -3095.475  915.2284
+```
 ### The SPDE Approach
 
 We model the latent spatial part $u(\cdot)$ of the observation model as a Gaussian Random Field with a Matern covariance function. The stochastic partial differential equations (SPDE) approach [@Lindgren:etal:11] provides an approximation to the Matérn GRF that results in a sparse precision matrix. This is applied by first triangulating the area of interest through $m$ nodes and then approximating the GRF $u(\cdot)$ by:
@@ -229,20 +254,58 @@ are weights for the basis functions. The SPDE approach results in a distribution
 We will construct the triangulation mesh based on the admin0 borders (in form of a SpatialPolygonsDataFrame object) of the country of interest. It is possible to manipulate the mesh resolution by setting the arguments max.edge and offset accordingly. 
 
 ```{r eval=FALSE}
-mesh.s = meshCountry(admin0 = admin0, max.edge = c(25, 50), offset=-.08)
+library(rgdal)
+admin2 = readOGR(dsn = "dataFiles/gadm40_NGA_shp",
+                     layer = "gadm40_NGA_2")
+
+proj = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
+
+admin2@data[["OBJECTID"]] =1:775 # we now include the lake which is polygon number 160
+admin2_trnsfrmd = spTransform(admin2,proj)
+dfNigeria <- fortify(admin2_trnsfrmd, region = "NAME_2")
+
+ggplot() + 
+  geom_path(data = dfNigeria, aes(long,lat, group = group),colour = "black", inherit.aes = FALSE)+ theme_bw()+
+  xlab("Easting (km)") + 
+  ylab("Northing (km)")  +
+  theme(panel.grid.major.x = element_blank(),
+  panel.grid.minor.x = element_blank(),
+  panel.grid.major.y = element_blank(),
+  panel.grid.minor.y = element_blank()) +
+  coord_fixed() +
+  guides(fill = guide_colourbar(barwidth = 2.5, barheight = 25, title = labs(""), title.vjust=3) )+
+  theme(legend.title = element_text(color = "transparent"), legend.text = element_text(color = "transparent"))+    
+  scale_x_continuous(expand=c(0,0)) + scale_y_continuous(expand=c(0,0)) 
+
+```
+
+![admin2 level borders](/Users/umuta/GeoAdjust/vignettes/countryMap.png){ width=100% }
+
+
+
+```{r eval=FALSE}
+# since the coordinate system that we work on is in kilometers, 
+# we need to transform admin0 file into kilometers first:
+
+proj = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
+admin0_trnsfrmd = spTransform(admin0,proj)
+
+mesh.s = meshCountry(admin0 = admin0_trnsfrmd, max.edge = c(25, 50), offset=-.08)
 ```
 It might be useful to visually check by plotting the mesh and the country borders together:
 ```{r eval=FALSE}
-# (Running the code chunk below line by line might cause "plot.new has not been called yet" error.
-# Instead try selecting all four lines and running them at once.)
-
-pdf("~/Desktop/mesh.pdf", width = 25, height = 14) # Open a new pdf file
-plot(mesh.s, cex.main=5)
-plot(admin0, border = "red", add=TRUE)
-dev.off() 
+library(inlabru)
+ggplot() +
+gg(mesh.s)  + theme_bw() +
+coord_fixed() +
+xlab("Easting (km)") + ylab("Northing (km)")  + 
+theme(panel.grid.major.x = element_blank(),
+panel.grid.minor.x = element_blank(),
+panel.grid.major.y = element_blank(),
+panel.grid.minor.y = element_blank())
 
 ```
-![Mesh and the admin0 borders](/Users/umuta/GeoAdjust/vignettes/mesh.png){ width=100% }
+![Mesh and the admin0 borders (blue)](/Users/umuta/GeoAdjust/vignettes/mesh.png){ width=100% }
 
 ## ESTIMATING MODEL PARAMETERS
 We constructed our method of accounting/adjusting for positional uncertainty based on approaching the unknown true locations as nuisance parameters and integrating them out of the joint maximum likelihood function. This can be seen more clearly by writing the observation model as follows:
@@ -255,11 +318,12 @@ We constructed our method of accounting/adjusting for positional uncertainty bas
 for $c = 1, \ldots, C$. This formulation suggests that we can avoid sampling the true locations with an MCMC approach. Further technical details can be found in the supplementary materials section of [@altay2022accounting]. We apply the method and estimate the parameters in the model by utilizing autodifferentiation feature of Template Model Builder (TMB) package [@JSSv070i05]. 
 
 #### Preparing inputs for estimation
-We need to prepare a list of input items to be passed into the C++ script of TMB. The list can be prepared by using `prepare_input` function. In this example we use only one covariate, which is the population density. The function allows having more than one covariates as well. The file `(NGA_ppp_v2c_2015.tif)` containing the population density data can be downloaded from World Pop [@pop] web page and then converted into a raster object as follows:
+We need to prepare a list of input items to be passed into the C++ script of TMB. The list can be prepared by using `prepare_input` function. In this example we use only one covariate, which is the population density. The function allows having more than one covariates as well. The file `(Nga_ppp_v2c_2015.tif)` containing the population density data can be downloaded from World Pop [@pop] web page and then converted into a raster object as follows:
 
 
 ```{r eval = FALSE}
-r = raster::raster("nga_ppp_2015.tif")
+
+r = raster::raster("Nga_ppp_v2c_2015.tif")
 
 ```
 
@@ -301,6 +365,13 @@ jScale = 1 # represents the default DHS maximum jittering distances
 urban = nigeria.data$urbanRuralDHS # shows the urbanicity classification of each cluster center. Takes "U" 
                                # if the cluster center is located within an urban area and takes "R" 
                                # if the cluster center is located within a rural area
+
+# remember that we previously re-read the admin2 file to plot the borders
+# and we need to remove the lake and add the object ID again:
+
+admin2 = admin2[-160,] # removing the lake (contained in polygon 160)
+admin2@data[["OBJECTID"]] =1:774 # we now include the lake which is polygon number 160
+
 adminMap = admin2              # SpatialPolygonsDataFrame object that contains
                                # the administrative borders that are respected
                                # while jittering is done
@@ -316,9 +387,11 @@ alphaSpatial = 0.05
 
 And finally constructing the data input list:
 ```{r eval = FALSE}
-data = prepare_input(response=response, locObs=locObs, likelihood = likelihood, 
+inputData = prepare_input(response=response, locObs=locObs, likelihood = likelihood, 
               jScale=jScale, urban = urban, mesh.s = mesh.s, adminMap=adminMap, nSubAPerPoint=10, nSubRPerPoint = 10,
               covariateData=covariateData)
+
+View(data)
 ```
 The function creates a set of integration points around each cluster center, the cluster center itself 
 being the first integration point. Then the function:
@@ -332,7 +405,7 @@ being the first integration point. Then the function:
 The data list created by this function contains the spde components as well. The final data input list looks like the following :
 
 ```{r eval = FALSE} 
-  data <- list(num_iUrban,  # Total number of urban observations
+  inputData <- list(num_iUrban,  # Total number of urban observations
                num_iRural,  # Total number of rural observations
                num_s, # num. of vertices in SPDE mesh
                y_iUrban, # num. of pos. urban obs in the cluster
@@ -366,28 +439,49 @@ The argument "options" should have two elements, namely, "random" and "covariate
 
 <!-- If one wants to try the approach which suggests using smoothed covariate rasters, instead of using the autodifferentiation of TMB, then both arguments needs to be set to zero again. Because that method does not account for jittering in the sense that our method does.  -->
 
-The list called "priors" contains the values that will be used to create PC priors for the spatial range and marginal variance, together with the Gaussian priors for the intercept and the coefficients of the covariates. The argument "beta" should be passed a vector of two elements, where the first one is the mean and the second one is the standard deviation for the Gaussian prior. The second argument "range" represents the median spatial range in kilometers for the PC (Penalized-complexity) priors. We recommend choosing this value as the 10% of the longest distance (in kilometers) between the points along the borders of the corresponding country.
+The list called "priors" contains the values that will be used to create PC priors for the spatial range and marginal variance, together with the Gaussian priors for the intercept and the coefficients of the covariates. The argument "beta" should be passed as a vector of two elements, where the first one is the mean and the second one is the standard deviation for the Gaussian prior. The second argument "range" represents the median spatial range in kilometers for the PC (Penalized-complexity) priors. We recommend choosing this value as the 10% of the longest distance (in kilometers) between the points along the borders of the corresponding country.
 
 
 ```{r eval = FALSE}
-est = estimateModel(data = data, 
+est = estimateModel(data = inputData, 
                     options = list(random = 1, covariates = 1), # we want to account for jittering in both
-                    priors = list(beta = c(0,1), range = 114))
+                    priors = list(beta = c(0,1), range = 114, USpatial = 1, alphaSpatial = 0.05))
+
 ```
-The `estimateModel` function creates a list of two elements. The first element of the list is called "res" (short for results) and contains the values of the model parameter estimates. The second element of the list is called "obj". This is the product of running TMB and it is created by "MakeADFun" function of TMB. We output this from the function since it will be needed as an input for the prediction step. 
-```
+The `estimateModel` function creates a list of two elements as oiutput. The first element of the list is called "res" (short for results) and contains the values of the model parameter estimates. The second element of the list is called "obj". This is the product of running TMB and it is created by "MakeADFun" function of TMB. We output this from the function since it will be needed as an input for the prediction step. 
 
-## PREDICTIONS WITH THE MODEL
+## Predictions with the Model
 
-### Creating prediction points from a grid 
+### Creating a prediction grid
 
-Once the model parameters are estimated, the next step will be to make predictions at new locations using our model. In this section we will first show how to construct a grid of points with respect to the bounding box (bbox) of the SpatialPolygonsDataFrame which represents the borders of the country of interest. Then we will chose certain number of points from them randomly. These are done by the "gridCountry" function to create a set of prediction locations and obtain their coordinates both in degrees and in kilometers.
+Once the model parameters are estimated, the next step will be to make predictions at new locations using our model. In this section we will first  construct a grid of points with respect to the bounding box (bbox) of the SpatialPolygonsDataFrame which represents the borders of the country of interest. Then we will chose certain number of points from them randomly. These are done by the "gridCountry" function to create a set of prediction locations and obtain their coordinates both in degrees and in kilometers.
 
 ```{r eval = FALSE}
 
-predCoord = gridCountry(admin0 = NULL, m = NULL, n = NULL, nPred = NULL)
+predCoord = gridCountry(admin0 = admin0, m = 50, n = 50)
+
+grid = data.frame(long = predCoord[,1], lat = predCoord[,2])
+
+pdf("~/Desktop/grid.pdf", width = 25, height = 14) # Open a new pdf file
+plot(grid, asp=1)
+plot(admin0, border = "red", add=TRUE)
+dev.off()
+
+head(predCoord)   # randomly chosen prediction points:
+
+        long       lat      east     north
+1  5.119040  6.823085 -3476.933  907.8185
+2 13.206050 10.946625 -2411.477 1341.1260
+3  7.079527  6.823085 -3220.076  888.0158
+4  4.628918  7.804880 -3530.615 1043.7634
+5  8.549893  5.055854 -3044.689  648.3731
+6  6.344345  6.430367 -3319.562  843.8708
 
 ```
+
+![The prediction grid](/Users/umuta/GeoAdjust/vignettes/grid.png){ width=100% }
+
+
 
 ### Predictions at the new prediction points
 
@@ -399,7 +493,7 @@ predictions = predRes(obj = est[["obj"]], predCoords = predCoords)
 
 ```
 
-
+## References
 
 
 
