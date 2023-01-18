@@ -110,7 +110,6 @@ where $\phi_i(\cdot)$ are pyramidal basis functions and  $\boldsymbol{w} = (w_1 
 are weights for the basis functions. The SPDE approach results in a distribution $\boldsymbol{w}\sim\mathcal{N}_m(\boldsymbol{0}, \mathbf{Q}(\boldsymbol{\theta})^{-1})$, where $\mathbf{Q}(\boldsymbol{\theta})$ is sparse.
 
 
-
 ## Data Preparation
 Assume that we want to estimate the risk of completing secondary education among 20-39 years old women throughout Nigeria. Although it seems straight forward, it still might be time saving for the potential users of the package to see an example regarding how the data is extracted from the main input files and processed towards forming a main input data list. It is not possible to share DHS data publicly, therefore the real survey data will not be processed through this manuscript. Instead, an example data set mimicing the DHS data will be used. Similar to the Nigeria DHS 2018 household survey (NDHS-2018) data files, the example data set consist of a Stata file and a shape file. In order to be consistent with NDHS-2018 survey, the example data is constructed using the same variable names (v001, v012, etc.). Detailed description of the variables can be found in [@fund2018demographic]. Following is the demonstration for first extracting and then merging the individual and cluster level data, based on the Nigeria DHS 2018 (NDHS-2018) household survey file and variable names:
 
