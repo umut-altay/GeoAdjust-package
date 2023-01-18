@@ -2,9 +2,9 @@
 % Please edit documentation in R/estimateModel.R
 \name{estimateModel}
 \alias{estimateModel}
-\title{Estimate model parameters}
+\title{Estimates model parameters}
 \usage{
-estimateModel(data = NULL, options = NULL, priors = NULL)
+estimateModel(data = NULL, options = NULL, priors = NULL, nNodes = NULL)
 }
 \arguments{
 \item{data}{A data input list that is created by prepare_input() function}
@@ -25,8 +25,8 @@ A data frame called "res", containing the estimated model parameters, and "obj" 
 with the model (if wanted).
 }
 \description{
-Estimate model parameters
+Estimates model parameters
 }
 \examples{
-estimateModel(data, options, priors)
+results <- estimateModel(data = data, options = options, priors = priors)
 }

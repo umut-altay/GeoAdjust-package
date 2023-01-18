@@ -1,9 +1,9 @@
-#' Convert a set of coordinates in kilometers into a new set of coordinates in degrees.
+#' Converts a set of coordinates in The Universal Transverse Mercator (UTM) zone:37 coordinate system into a new set of coordinates in degrees.
 #'
-#' @param loc A two column matrix of coordinates (the first column is easting and the second column is northing).
-#' @return A two column matrix of coordinates (the first column is longitude and the second column is latitude).
+#' @param loc A two column matrix of coordinates in The Universal Transverse Mercator (UTM) zone:37 coordinate system (https://www.usgs.gov/faqs/what-does-term-utm-mean-utm-better-or-more-accurate-latitudelongitude).
+#' @return A two column matrix of coordinates in degrees (the first column is longitude and the second column is latitude).
 #' @examples
-#' convertKMToDeg(loc = NULL)
+#' locDegree <- convertKMToDeg(loc = locKM)
 #' @export
 #' @import sp
 convertKMToDeg = function(loc) {

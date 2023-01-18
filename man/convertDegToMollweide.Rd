@@ -2,7 +2,7 @@
 % Please edit documentation in R/convertDegToMollweide.R
 \name{convertDegToMollweide}
 \alias{convertDegToMollweide}
-\title{Convert a set of coordinates in degrees into a new set of coordinates in Mollweide coordinate system.}
+\title{Converts a set of coordinates in degrees into a new set of coordinates in Mollweide coordinate system.}
 \usage{
 convertDegToMollweide(loc)
 }
@@ -10,11 +10,11 @@ convertDegToMollweide(loc)
 \item{loc}{A two column matrix of coordinates (The first column is longitude and the second column is latitude).}
 }
 \value{
-A two column matrix of coordinates in Mollweide coordinate system.
+A two column matrix of coordinates in Mollweide (https://pubs.usgs.gov/pp/1395/report.pdf) coordinate system.
 }
 \description{
-Convert a set of coordinates in degrees into a new set of coordinates in Mollweide coordinate system.
+Converts a set of coordinates in degrees into a new set of coordinates in Mollweide coordinate system.
 }
 \examples{
-convertDegToMollweide(loc = NULL)
+locMoll <- convertDegToMollweide(loc = loc)
 }

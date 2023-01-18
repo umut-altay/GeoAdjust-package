@@ -2,7 +2,7 @@
 % Please edit documentation in R/covMatern.R
 \name{covMatern}
 \alias{covMatern}
-\title{Create a Matern covariance matrix.}
+\title{Creates a Matern covariance matrix.}
 \usage{
 covMatern(dMat, range, stdDev)
 }
@@ -17,8 +17,8 @@ covMatern(dMat, range, stdDev)
 Matern covariance matrix.
 }
 \description{
-Create a Matern covariance matrix.
+Creates a Matern covariance matrix.
 }
 \examples{
-covMatern(dMat = NULL, range = NULL, stdDev = NULL)
+covMat <- covMatern(dMat = dMat, range = range, stdDev = stdDev)
 }

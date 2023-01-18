@@ -1,14 +1,14 @@
-#' Create a set of prediction locations, chosen randomly from a prediction grid
+#' Creates a grid of locations within the national borders of a country of interest
 #'
-#' @param admin0 A SpatialPolygonsdataframe object reresenting the country (admin0) borders
-#' @param m A value representing the length of the segments that the longitude range of the country will be divided into
-#' @param n A value representing the length of the segments that the latitude range of the country will be divided into
-#' @return A data frame containing the coordinates (in degrees and in kilometers) of a set of prediction points
+#' @param admin0 A SpatialPolygonsDataFrame object representing the national (admin0) level borders of the country
+#' @param m A value representing the number of points that the longitude range of the country will be divided by
+#' @param n A value representing the number of points that the latitude range of the country will be divided by
+#' @return A data frame containing the coordinates (in degrees and in kilometers) of a set of prediction points on a grid
 #' @examples
-#' gridCountry(admin0 = NULL, m = NULL, n = NULL, nPred = NULL)
+#' grid <- gridCountry(admin0 = admin0, m = m, n = n)
 #' @export
 #' @import spatialEco
-gridCountry = function(admin0, m, n, nPred){
+gridCountry = function(admin0, m, n){
 
   xx = seq(admin0@bbox[1,1], admin0@bbox[1,2], length.out = m)
   yy = seq(admin0@bbox[2,1], admin0@bbox[2,2], length.out = n)
@@ -23,7 +23,7 @@ gridCountry = function(admin0, m, n, nPred){
   grid=erase.point(grid, admin0, inside = FALSE)
 
   loc.pred = cbind(grid@coords[ ,1], grid@coords[ ,2])
-
+  nPred = length(loc.pred[,1])
   loc.pred = data.frame(long = loc.pred[,1], lat = loc.pred[,2], east = rep(NA, nPred), north = rep(NA, nPred))
   loc.pred[,c("east", "north")] = convertDegToKM(loc.pred[,c("long", "lat")])
   return(loc.pred)

@@ -1,4 +1,4 @@
-#' Predict
+#' Predicts new outcomes for the response variable
 #'
 #' @param obj The output object created by the "estimateModel" function that contains the TMB components for predictions
 #' @param predCoords A matrix containing the coordinates of the prediction locations in kilometers

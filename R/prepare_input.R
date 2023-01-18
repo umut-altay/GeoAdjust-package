@@ -1,4 +1,4 @@
-#' Prepare TMB inputs
+#' Prepares input data list for the model estimation with "estimateMoodel function
 #'
 #' @param response A list containing the number of trials (ns) and number of successes (ys) for the binomial response, or a list containing the response values (ys) for the Gaussian response.
 #' @param locObs A matrix containing the coordinates of the already jittered survey cluster centers in kilometers
@@ -12,8 +12,8 @@
 #' @param covariateData A list containing the covariate rasters
 #' @return A list containing a list of data inputs for TMB, the corresponding mesh and the corresponding matrix of observation locations
 #' @examples
-#' prepare_input(response, locObs, modelParams, otherValues, jScale, urban, mesh.s, adminMap, nSubAPerPoint, nSubRPerPoint,
-#' covariateData, rangeMaternPri)
+#' inputData <- prepare_input(response = response, locObs = locObs, modelParams = modelParams, otherValues = otherValues, jScale = jScale, urban = urban, mesh.s = mesh.s, adminMap = adminMap, nSubAPerPoint = nSubAPerPoint, nSubRPerPoint = nSubRPerPoint,
+#' covariateData = covariateData, rangeMaternPri = rangeMaternPri)
 #' @export
 #' @import INLA
 prepare_input = function(response=NULL, locObs=NULL, likelihood, jScale=NULL, urban=NULL, mesh.s=NULL,

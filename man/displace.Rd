@@ -2,7 +2,7 @@
 % Please edit documentation in R/displace.R
 \name{displace}
 \alias{displace}
-\title{Randomly displace (Jitters) a set of locations}
+\title{Randomly displaces (Jitters) a set of locations}
 \usage{
 displace(scale, locKM, urbanRural, AdminShapeFile, check1, boundary)
 }
@@ -23,8 +23,8 @@ displace(scale, locKM, urbanRural, AdminShapeFile, check1, boundary)
 A matrix containing the coordinates of the displaced locations
 }
 \description{
-Randomly displace (Jitters) a set of locations
+Randomly displaces (Jitters) a set of locations
 }
 \examples{
-displace(scale = NULL, locKM = NULL, urbanRural = NULL, Admin2ShapeFile = NULL, check1 = NULL, boundary = NULL)
+locJittered <- displace(scale = scale, locKM = locKM, urbanRural = urbanRural, Admin2ShapeFile = Admin2ShapeFile, check1 = check1, boundary = TRUE)
 }

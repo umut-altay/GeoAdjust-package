@@ -1,4 +1,4 @@
-#' Estimate model parameters
+#' Estimates model parameters
 #'
 #' @param data A data input list that is created by prepare_input() function
 #' @param nNodes number of mesh nodes
@@ -12,7 +12,7 @@
 #' @return A data frame called "res", containing the estimated model parameters, and "obj" which contains the required components for predictions
 #' with the model (if wanted).
 #' @examples
-#' estimateModel(data, options, priors)
+#' results <- estimateModel(data = data, options = options, priors = priors)
 #' @export
 #' @import TMB
 estimateModel = function(data = NULL, options = NULL, priors = NULL, nNodes = NULL){

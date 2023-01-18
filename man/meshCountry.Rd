@@ -2,7 +2,7 @@
 % Please edit documentation in R/meshCountry.R
 \name{meshCountry}
 \alias{meshCountry}
-\title{Create a mesh based on the country borders.}
+\title{Creates a constrained refined Delaunay triangulation mesh based on the country borders.}
 \usage{
 meshCountry(admin0, max.edge, offset)
 }
@@ -14,11 +14,11 @@ meshCountry(admin0, max.edge, offset)
 \item{offset}{offset value for the inla.mesh.2d object}
 }
 \value{
-A mesh created based on the country borders.
+A constrained refined Delaunay triangulation mesh created based on the country borders.
 }
 \description{
-Create a mesh based on the country borders.
+Creates a constrained refined Delaunay triangulation mesh based on the country borders.
 }
 \examples{
-meshCountry(admin0 = NULL, max.edge = NULL, offset = NULL)
+mesh.s <- meshCountry(admin0 = admin0, max.edge = c(25, 50), offset = -.08)
 }
