@@ -9,16 +9,15 @@
 #' @param adminMap A shape file containing the borders of the administrative area level, which was respected while the cluster centers were initially being jittered. (can be obtained from https://gadm.org)
 #' @param nSubAPerPoint A value representing the number of unique sub-integration point angles per integration point
 #' @param nSubRPerPoint A value representing the number of unique sub-integration point radii per integration point
-#' @param testMode A logical constant (TRUE/FALSE). Chose TRUE to return the information (coordinates and the corresponding weights) about the integration points, if needed
 #' @param covariateData A list containing the covariate rasters
 #' @return A list containing a list of data inputs for TMB, the corresponding mesh and the corresponding matrix of observation locations
 #' @examples
 #' prepare_input(response, locObs, modelParams, otherValues, jScale, urban, mesh.s, adminMap, nSubAPerPoint, nSubRPerPoint,
-#' testMode=FALSE, covariateData, rangeMaternPri)
+#' covariateData, rangeMaternPri)
 #' @export
 #' @import INLA
-prepareData = function(response=NULL, locObs=NULL, likelihood, jScale=NULL, urban=NULL, mesh.s=NULL,
-                         adminMap=NULL, nSubAPerPoint=10, nSubRPerPoint=10, testMode=FALSE,
+prepare_input = function(response=NULL, locObs=NULL, likelihood, jScale=NULL, urban=NULL, mesh.s=NULL,
+                         adminMap=NULL, nSubAPerPoint=10, nSubRPerPoint=10,
                          covariateData=NULL){
 
   # extract arguments
@@ -66,12 +65,12 @@ prepareData = function(response=NULL, locObs=NULL, likelihood, jScale=NULL, urba
                                           adminMap=adminMap,
                                           nSubAPerPoint=nSubAPerPoint,
                                           nSubRPerPoint=nSubRPerPoint,
-                                          testMode=testMode)
+                                          testMode=FALSE)
 
 
-  if(testMode) {
-    return(intPointInfo)
-  }
+  # if(testMode) {
+  #   return(intPointInfo)
+  # }
 
 
   xUrban = intPointInfo$xUrban
@@ -97,6 +96,8 @@ prepareData = function(response=NULL, locObs=NULL, likelihood, jScale=NULL, urba
   coordsUrbanDegree = convertKMToDeg(coordsUrban)
   coordsRuralDegree = convertKMToDeg(coordsRural)
 
+  # coordsUrbanDegree = cbind(coordsUrbanDegree[,1], coordsUrbanDegree[,2])
+  # coordsRuralDegree = cbind(coordsRuralDegree[,1], coordsRuralDegree[,2])
   # Convert them into SpatialPoints
   coordsUrbanDegree = SpatialPoints(cbind(coordsUrbanDegree[,1], coordsUrbanDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
   coordsRuralDegree = SpatialPoints(cbind(coordsRuralDegree[,1], coordsRuralDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
@@ -104,8 +105,8 @@ prepareData = function(response=NULL, locObs=NULL, likelihood, jScale=NULL, urba
   # Extract the corresponding covariate values seperately for urban/rural
   for (i in 1:length(covariateData)){
     #Extract covariate values from data rasters at dhsLocs
-    assign(paste0("covariate_Urban", i), raster::extract(covariateData[[i]], coordsUrbanDegree))
-    assign(paste0("covariate_Rural", i), raster::extract(covariateData[[i]], coordsRuralDegree))
+    assign(paste0("covariate_Urban", i), raster::extract(covariateData[[i]], coordsUrbanDegree, ncol=2))
+    assign(paste0("covariate_Rural", i), raster::extract(covariateData[[i]], coordsRuralDegree, ncol=2))
 
   }
 
@@ -126,6 +127,9 @@ prepareData = function(response=NULL, locObs=NULL, likelihood, jScale=NULL, urba
   desMatrixJittRural[is.nan(desMatrixJittRural)] = 0
   desMatrixJittRural[is.na(desMatrixJittRural)] = 0
   #
+  desMatrixJittUrban = as.matrix(desMatrixJittUrban)
+  desMatrixJittRural = as.matrix(desMatrixJittRural)
+
 
   n_integrationPointsUrban = ncol(wUrban)
   n_integrationPointsRural = ncol(wRural)
@@ -166,5 +170,5 @@ prepareData = function(response=NULL, locObs=NULL, likelihood, jScale=NULL, urba
                flag2 = flag2 #(0/1 for Gaussian/Binomial)
   )
 
-  return(list(data = data, mesh.s = mesh.s))
+  return(data)
 }

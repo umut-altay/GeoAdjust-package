@@ -3,7 +3,6 @@
 #' @param admin0 A SpatialPolygonsdataframe object reresenting the country (admin0) borders
 #' @param m A value representing the length of the segments that the longitude range of the country will be divided into
 #' @param n A value representing the length of the segments that the latitude range of the country will be divided into
-#' @param nPred The number of prediction points which are to be randomly choosen from the created prediction grid
 #' @return A data frame containing the coordinates (in degrees and in kilometers) of a set of prediction points
 #' @examples
 #' gridCountry(admin0 = NULL, m = NULL, n = NULL, nPred = NULL)
@@ -24,8 +23,7 @@ gridCountry = function(admin0, m, n, nPred){
   grid=erase.point(grid, admin0, inside = FALSE)
 
   loc.pred = cbind(grid@coords[ ,1], grid@coords[ ,2])
-  idx = sample.int(dim(loc.pred)[1], size = nPred)
-  loc.pred = loc.pred[idx,]
+
   loc.pred = data.frame(long = loc.pred[,1], lat = loc.pred[,2], east = rep(NA, nPred), north = rep(NA, nPred))
   loc.pred[,c("east", "north")] = convertDegToKM(loc.pred[,c("long", "lat")])
   return(loc.pred)

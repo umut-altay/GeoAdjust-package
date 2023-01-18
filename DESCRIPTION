@@ -17,5 +17,5 @@ VignetteBuilder: knitr
 Depends: R (>= 3.5), TMB, RcppEigen
 LinkingTo: TMB, RcppEigen
 License: GPL (>= 2)
-Imports: ggplot2, viridis, raster, rgdal, sp, stats, TMB, INLA, spatialEco
+Imports: ggplot2, viridis, raster, rgdal, sp, stats, TMB, INLA, spatialEco, SUMMER, rgeos
 Additional_repositories: https://inla.r-inla-download.org/R/stable/
