@@ -12,8 +12,6 @@ gridCountry(admin0, m, n, nPred)
 \item{m}{A value representing the length of the segments that the longitude range of the country will be divided into}
 
 \item{n}{A value representing the length of the segments that the latitude range of the country will be divided into}
-
-\item{nPred}{The number of prediction points which are to be randomly choosen from the created prediction grid}
 }
 \value{
 A data frame containing the coordinates (in degrees and in kilometers) of a set of prediction points

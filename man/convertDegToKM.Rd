@@ -4,7 +4,11 @@
 \alias{convertDegToKM}
 \title{Convert a set of coordinates in degrees into a new set of coordinates in kilometers.}
 \usage{
-convertDegToKM(loc)
+convertDegToKM(
+  loc,
+  crs =
+    sp::CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs")
+)
 }
 \arguments{
 \item{loc}{A two column matrix of coordinates (The first column is longitude and the second column is latitude).}
