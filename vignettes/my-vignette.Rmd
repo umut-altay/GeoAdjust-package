@@ -30,23 +30,31 @@ library(GeoAdjust)
 ```
 
 ## ABSTRACT
+The Demographic and Health Surveys Program (DHS) conducts household surveys in low- and middle-income countries. The surveys are designed as the stratified cluster sampling, where each household cluster is located within either urban or rural stratum. DHS applies a number of measures in order to make sure that the privacy of the survey participants is protected. These measures involve first aggregating the collected data into the GPS coordinates of the household cluster centers, and then randomly diplacing the true locations of cluster centers with respect to a known jittering algorithm. The random displacement leads the DHS coordinates to contain positional error. We recently discovered that the unaddressed positional error results in the model parameter estimates that are attenuated towards zero together with a poorer predictive performance [@altay2022accounting], [@altay2022covariates]. GeoAdjust package is constructed in order to provide fast computational tools which allow accounting/adjusting for positional uncertainty in the GPS coordinates of the observed data. The package makes use of the methods that are developed and discussed in detail in [@altay2022accounting] and [@altay2022covariates]. 
 
 ## INTRODUCTION
+DHS jittering algorithm is applied by choosing a uniform random angle between 0 and $2\pi$ and shifting the true location up to a certain maximum jittering distance towards the corresponding direction.  The maximum jittering distances are decided based on the strata that the cluster center is located within.The urban cluster centers are displaced up to 2 kilometers while the rural ones are jittered up to 5 kilometers, with %1 of them being jittered up to 10 kilometers [@DHSspatial07]. 
 
-The Demographic and Health Surveys Program (DHS) conducts household surveys in low- and middle-income countries.
-DHS wants to make sure that the privacy of the survey participants is protected before the data is published. They first aggregate the data collected from the households into the GPS coordinates of each household cluster center. This step is followed by randomly displacing the true cluster centers with respect to the stratum that they belong to. The household survey design consists of two strata as urban and rural.
+The jittering is done by respecting the administrative area borders, meaning that the jittered location is not allowed to end up in an administrative area that is different than the initial one. Jittering is repeated until this condition is satisfied. Administrative areas are classified into different hierarchical levels starting from the national (or admin0) level. National level refers to the entire country which is seperated from its neighbours via the national or admin0 level borders. The classification follows hierarchically through smaller subnational levels as counties, provinces, etc., which are also coded by the increasing numbers such as admin1, admin2, etc. 
 
-DHS applies jittering (small local random displacements) with respect to a known jittering algorithm. The algorithm basically involves first choosing a uniform random angle between 0 and $2\pi$ and then shifting the true location up to a certain maximum distance towards the corresponding direction. Accordingly, the urban cluster centers are displaced up to 2 kilometers while the rural ones are jittered up to 5 kilometers, with %1 of them being jittered up to 10 kilometers [@DHSspatial07]. The jittering is done by respecting the administrative area borders, meaning that the jittered location is not allowed to end up in an administrative area that is different from the initial one. Jittering is repeated until this condition is satisfied. Administrative areas are classified into levels. The first level which is eather called the "national level" or usually coded as "admin0" represents the natinal borders of the country. Then the subnational levels follows either as counties, provinces, etc., or as admin1, admin2, etc. It is important to be aware that the jittering can be done with respect to different admin levels in different countries. The information about this can be found in the corresponding README.txt (it is called "GPS_Displacement_README.txt" for the Nigeria 2018 survey, might be different elsewhere) file of the corresponding DHS data set. 
-
-The random displacement leads the DHS coordinates to contain positional error. We recently discovered that the unaddressed positional error results in the model parameter estimates that are attenuated towards zero together with a poorer predictive performance [@altay2022accounting], [@altay2022covariates]. GeoAdjust package is constructed in order to provide useful computational tools which account for positional uncertainty in the GPS coordinates of the observed data. The package follows the methods that are developed and discussed in detail in [@altay2022accounting] and [@altay2022covariates]. 
+It is important to be aware that the jittering can be applied with respect to different admin levels in different countries. The information about this can be found in the corresponding README.txt (it is called "GPS_Displacement_README.txt" for the Nigeria 2018 survey, might be different elsewhere) file of the corresponding DHS data set. 
 
 
-![package workflow](/Users/umuta/GeoAdjust/vignettes/workflow.png){ width=100% }
+
+### Data Structure and the Package Workflow
+
+DHS data set consists of both individual level and cluster level information. The individual level data is a Stata file mainly containing the responses of the participants to the survey. The file has a variable referring to the corresponding cluster ID of each data row. The cluster level data is a shape file. It contains cluster identification information such as their jittered latitudes and longitudes (in degrees), cluster ID, corresponding strata ("R" for rural and "U" for urban) and the name of the administrative area that they are located within. Since the cluster ID is a common variable in both files, it will be useful while merging them into a single data frame. 
+
+The analysis method requires two shape files. One of them is the shape file that contains the national (admin0) level borders of the country of interest. The second one should contain the borders that correspond to the administrative level areas which are respected while the true cluster centers are jittered. Shape files of various administrative levels for various countries are available at the  website of "the Database of Global Administrative Areas (GADM)" (https://gadm.org/data.html). Once downloaded, the files can be read into R as "SpatialPolygonsDataFrame" objects.
+
+Finally, the covariates should be read into R as the raster layers. Accordingly, the main input is composed of the geographic data, survey data, covariate rasters and two shape files representing the corresponding national and subnational administrative level borders of the country of interest. The data files are processed with the functions provided with the package to produce output, namely, the model parameter estimates and the predictions on a prediction grid. The following figure shows the workflow through the functions of Geoadjust R-package:
+
+![Workflow of GeoAdjust R-package](/Users/umuta/GeoAdjust/vignettes/workflow.png){ width=100% }
 
 
 ### Access to DHS Data
 
-DHS data sets are not openly available to the public. Access to relevant DHS survey data sets requires applying for permission. One needs to briefly and clearly explain why the data is needed and how it will be processed and used. Sharing the data sets with the collaborating researchers requires permission as well. Step by step explanation about the application process can be found in DHS website. Once the permission is granted, the applicant receives a letter via email, which clearly states the content of the permission.
+DHS data sets are not openly available to the public. Access to relevant DHS survey data sets requires applying for permission. One needs to briefly and clearly explain why the data is needed and how it will be processed and used, within a project summary framework. Sharing the data sets with the collaborating researchers requires permission as well. Step by step explanation about the application process can be found in DHS website (https://dhsprogram.com/data/new-user-registration.cfm). Once the permission is granted, the applicant receives a letter via email, which clearly states the content of the permission.
 
 
 <!-- The methods included in GeoAdjust package utilize the auto-differentiation in Template Model Builder (TMB) R package. The approach involves creating a set of integration points within equidistant rings around each cluster center. Each cluster center is taken as the first integration point of the corresponding point set, and then depending on the urbanicity of the cluster, different number of rings are created together with their own sets of integration points. This approach allows us to consider the unknown true locations as the nuisance parameters in the model and then integrate them out by utilizing the auto differentiation of the Template Model builder (TMB) R-package. TMB operates via a C++ script which  contains the joint negative log-likelihood function and allows computing the contribution of each integration point to the joint negative log-likelihood. -->
@@ -54,39 +62,59 @@ DHS data sets are not openly available to the public. Access to relevant DHS sur
 <!-- This package aims to provide fast and useful tools that allow doing inference and prediction while adjusting/accounting for the positional error in the GPS coordinates of the survey cluster centers. -->
 
 ## The Adjusted Model
-Assume that we want to estimate the risk of completing secondary education among 20-39 years old women throughout Nigeria. We call the true GPS coordinates of the centroids of each household cluster as the "true locations", whereas the published GPS coordinates of the cluster centers are referred as the "observed locations". These locations contain positional error due to being jittered. We need to adjust for this, in order to avoid its adverse impact on inference.
 
-Let $\boldsymbol{s}_1^*, \ldots, \boldsymbol{s}_C^* \in\mathcal{D}$ denote the true locations of the corresponding published DHS cluster centers $\boldsymbol{s}_1, \ldots, \boldsymbol{s}_C$. Adjusting for jittering yields the following observation model:
+The method behind GeoAdjust R-package aims for adjusting for the adverse effects of jittering on the inference and the package is the end product of the development process of the corresponding approach The method is discussed in detail in [@altay2022accounting] and [@altay2022covariates]. The core idea is treating the unknown true locations as the nuisance parameters and integrating them out of the joint likelihood function. In practice, this is applied by utilizing the auto-differentiation feature of the Template Model Builder (TMB) R-package. 
+
+We call the true GPS coordinates of the centroids of each household cluster as the "true locations", whereas the published GPS coordinates of the cluster centers are referred as the "observed locations". Let $\boldsymbol{s}_1^*, \ldots, \boldsymbol{s}_C^* \in\mathcal{D}$ denote the true locations of the corresponding published DHS cluster centers $\boldsymbol{s}_1, \ldots, \boldsymbol{s}_C$. Adjusting for jittering within the binomial modelling framework yields the following observation model:
 \begin{align}
-\label{eqn:adjObsModel}
+\label{eqn:adjObsModelBinomial}
 \begin{split}
 y_c | r_c,n_c &\sim \text{Binomial}(n_c, r_c), \quad \boldsymbol{s}_c|\boldsymbol{s}_c^*\sim \pi_{\mathrm{Urb}[c]}(\boldsymbol{s}_c|\boldsymbol{s}_c^*),\\
     r_c | \boldsymbol{s}_c^* &= r(\boldsymbol{s}_c^*) = \mathrm{logit}^{-1}( \eta(\boldsymbol{s}_c^*)),
 \end{split}
 \end{align}
 
-where $r_c$ denotes the risk of interest in cluster $c$, and $\mathrm{Urb}[c]\in\{\mathrm{U}, \mathrm{R}\}$ corresponds to the urban (U) or rural (R) stratum that cluster c is located within. 
+where $r_c$ denotes the risk of interest in cluster $c$, and $\mathrm{Urb}[c]\in\{\mathrm{U}, \mathrm{R}\}$ corresponds to the urban (U) or rural (R) stratum that cluster c is located within. In this observation model, both $y_c$ and $\boldsymbol{s}_c$ are already available through the DHS data set and accordingly, treated as the observed quantities. The unobserved true locations $s_c^*$ on the other hand, are inaccessible. They are treated as the random quantities and assigned a uniform prior $s_c^*\sim \mathcal{U}(\mathcal{D})$. This implies that we treat all locations $\boldsymbol{s}_c^*$ within the maximum jittering distance from $\boldsymbol{s}_c$ as equally likely \emph{a priori}, meaning that the true location can be located anywhere within the corresponding jittering radius with equal probability.
 
-In this observation model, both $y_c$ and $\boldsymbol{s}_c$ are already available through the DHS data set and accordingly, treated as the observed quantities. The unobserved true locations $s_c^*$ on the other hand, are inaccessible. They are treated as the random quantities and assigned a uniform prior $s_c^*\sim \mathcal{U}(\mathcal{D})$. This implies that we treat all locations $\boldsymbol{s}_c^*$ within the maximum jittering distance from $\boldsymbol{s}_c$ as equally likely \emph{a priori}, meaning that the true location can be located anywhere within the corresponding jittering radius with equal probability.
+If the interest is on modelling the Poisson counts, then the adjusted model becomes:
 
-## Adjustments for Gaussian and Poisson Likelihoods
+\begin{align}
+\label{eqn:adjObsModelPoisson}
+\begin{split}
+y_c | \lambda_c &\sim \text{Poisson}(\lambda_c), \quad \boldsymbol{s}_c|\boldsymbol{s}_c^*\sim \pi_{\mathrm{Urb}[c]}(\boldsymbol{s}_c|\boldsymbol{s}_c^*),\\
+    log(\lambda_c) | \boldsymbol{s}_c^* &=  \eta(\boldsymbol{s}_c^*),
+\end{split}
+\end{align}
+where, $\lambda_c$ are the Poisson counts of interest.
 
+Similarly, the following represents the adjusted Gaussian model:
+\begin{align*}
+{\mathrm{y}_\mathrm{c} \mid \mathrm{\eta}_\mathrm{\boldsymbol{s}_c^*}, \sigma_\epsilon^2 \sim \mathcal{\mathrm{\mathcal{N}}}(\eta_\mathrm{\boldsymbol{s}_c^*}, \sigma_\epsilon^2}).
+\end{align*}
 
+\begin{align*}
+\mathrm{\eta}(\mathrm{\boldsymbol{s}_c^*})=\mu+\mathrm{X}(\mathrm{\boldsymbol{s}_c^*})^T\beta+\mathrm{u}(\mathrm{\boldsymbol{s}_c^*}).
+\end{align*}
+where $\sigma_\epsilon^2$ is the nugget variance, $\mu$ is the intercept, $X$ is the design matrix and $\beta$ is a vector of covariate effect sizes.
+
+In practice, estimating these different models using GeoAdjust R-package will involve passing the relevant model components as the arguments of the corresponding functions, which will be explained in more detail within next sections.  
+
+### The SPDE Approach
+
+We model the latent spatial part $u(\cdot)$ of the observation model as a Gaussian Random Field with a Matern covariance function. The stochastic partial differential equations (SPDE) approach [@Lindgren:etal:11] provides an approximation to the Matérn GRF that results in a sparse precision matrix. This is applied by first triangulating the area of interest through $m$ nodes and then approximating the GRF $u(\cdot)$ by:
+
+\begin{equation}
+\tilde{u}(\boldsymbol{s}) = \sum_{i=1}^m w_i \phi_i(s),\label{eq:SPDE:basis}
+\end{equation}
+where $\phi_i(\cdot)$ are pyramidal basis functions and  $\boldsymbol{w} = (w_1 \ \ldots \ w_m)^\mathrm{T}$
+are weights for the basis functions. The SPDE approach results in a distribution $\boldsymbol{w}\sim\mathcal{N}_m(\boldsymbol{0}, \mathbf{Q}(\boldsymbol{\theta})^{-1})$, where $\mathbf{Q}(\boldsymbol{\theta})$ is sparse.
 
 
 
 ## Data Preparation
-The survey data consists of both individual level and cluster level information. The individual level data is a Stata file that mainly contains the responses of the participants to the survey. The file has a variable indicating the corresponding cluster ID of each data row. The cluster level data is a shape file. It contains cluster identification information such as their jittered latitudes and longitudes (in degrees), cluster ID, corresponding strata ("R" for rural and "U" for urban) and the name of the administrative area that they are located within. Since the cluster ID is a common variable in both files, it will be useful while merging them into a single data frame. 
+Assume that we want to estimate the risk of completing secondary education among 20-39 years old women throughout Nigeria. Although it seems straight forward, it still might be time saving for the potential users of the pacakage to see an example regarding how the data is extracted from the main input files and processed towards forming a main input datalist. It is not possible to share DHS data publicly, therefore the real survey data will not be processed through this manuscript. Instead, an example data set mimicing the DHS data will be used. Similar to the Nigeria DHS 2018 household survey (NDHS-2018) data files, the example data set consist of a Stata file and a shape file. Following is the demonstration for first extracting and then merging the individual and cluster level data, based on the Nigeria DHS 2018 (NDHS-2018) household survey file and variable names:
 
-It is not possible to share DHS data publicly, therefore the real survey data will not be processed through this vignette. Instead, an example data set will be used. Similar to the Nigeria DHS 2018 household survey (NDHS-2018) data files, the example data set consist of a Stata file and a shape file.
-
-Additionally, two more shape files are needed. One of them is the shape file that contains the national (admin0) level borders of the country of interest. The second one should contain the borders that correspond to the administrative level areas with respect to which the true cluster centers are jittered. Shape files of various administrative levels for different countries are available at the  website of "the Database of Global Administrative Areas (GADM)" (https://gadm.org/data.html). Once downloaded, the files can be read into R as "SpatialPolygonsDataFrame" objects.
-
-Assume that we want to estimate the risk of completing secondary education among 20-39 years old women throughout Nigeria. Following is the demonstration for first extracting and then merging the individual and cluster level data, based on the Nigeria DHS 2018 (NDHS-2018) household survey file and variable names:
-
-
-
-### Reading the shape files of administrative area borders:
+Reading the shape files of administrative area borders:
 
 ```{r eval=FALSE}
 # the shape files corresponding to the admin0 and admin2 borders :
@@ -100,7 +128,7 @@ admin2 = readOGR(dsn = "dataFiles/gadm40_NGA_shp",
 admin2 = admin2[-160,] # removing the lake (contained in polygon 160)
 ```
 
-### Reading the DHS files:
+Reading the DHS files:
 
 ```{r eval = FALSE}
 library(haven)
@@ -115,12 +143,10 @@ path2 = system.file("extdata", "clusterLevel", package = "GeoAdjust", mustWork =
 educationData = read_dta(path1) 
 
 # cluster level data (clusterID, cluster center coordinates, strata, etc.)
-corList = readOGR(dsn = path2, 
-                             layer = "clusterLevel")
+corList = readOGR(dsn = path2,layer = "clusterLevel")
 ```
 
-
-### Extracting data:
+Extracting data:
 
 ```{r eval = FALSE}
 # extract cluster level information:
@@ -139,7 +165,7 @@ myData = data.frame(clusterIdx = educationData$v001,         # ID numbers of the
 ```
 In order to be consistent with NDHS-2018 survey, the example data is constructed using the same variable names (v001, v012, etc.). Detailed explanation about variables are found in [@fund2018demographic].
 
-### Subsetting and merging data:
+Subsetting and merging data:
 ```{r eval = FALSE}
 # subset data with respect to the age interval of interest:
 myData = subset(myData, age <= 39 & age >=20)
@@ -171,7 +197,7 @@ answers_joint = merge(answers_x, answers_n, by="clusterID")
 colnames(answers_joint) = c("clusterID", "ys", "ns")
 ```
 
-### Collecting everything into a main data frame:
+Collecting everything into a main data frame:
 ```{r eval = FALSE}
 # initial data frame
 nigeria.data = data.frame(clusterID = corList@data[["DHSCLUST"]], long = as.vector(corList@coords[,1]), lat = as.vector(corList@coords[,2]))
@@ -192,7 +218,7 @@ nigeria.data[,c("east", "north")] = convertDegToKM(nigeria.data[,c("long", "lat"
 nigeria.data = nigeria.data[-1,]
 ```
 
-### Fine tuning:
+Fine tuning:
 ```{r eval = FALSE}
 # jittering is done by respecting admin2 borders in Nigeria. 
 # see if there are  cluster centers that doesn't match with any of the admin2 areas:
@@ -239,15 +265,7 @@ head(nigeria.data)
 6         6  9.563798 11.676503 10 16             R -2846.535 1477.0920
 7         7  8.025037  7.104230  5 10             U -3095.475  915.2284
 ```
-### The SPDE Approach
 
-We model the latent spatial part $u(\cdot)$ of the observation model as a Gaussian Random Field with a Matern covariance function. The stochastic partial differential equations (SPDE) approach [@Lindgren:etal:11] provides an approximation to the Matérn GRF that results in a sparse precision matrix. This is applied by first triangulating the area of interest through $m$ nodes and then approximating the GRF $u(\cdot)$ by:
-
-\begin{equation}
-\tilde{u}(\boldsymbol{s}) = \sum_{i=1}^m w_i \phi_i(s),\label{eq:SPDE:basis}
-\end{equation}
-where $\phi_i(\cdot)$ are pyramidal basis functions and  $\boldsymbol{w} = (w_1 \ \ldots \ w_m)^\mathrm{T}$
-are weights for the basis functions. The SPDE approach results in a distribution $\boldsymbol{w}\sim\mathcal{N}_m(\boldsymbol{0}, \mathbf{Q}(\boldsymbol{\theta})^{-1})$, where $\mathbf{Q}(\boldsymbol{\theta})$ is sparse.
 
 #### Triangulation - The Mesh
 
@@ -255,6 +273,7 @@ We will construct the triangulation mesh based on the admin0 borders (in form of
 
 ```{r eval=FALSE}
 library(rgdal)
+library(ggplot2)
 admin2 = readOGR(dsn = "dataFiles/gadm40_NGA_shp",
                      layer = "gadm40_NGA_2")
 
@@ -443,7 +462,10 @@ The list called "priors" contains the values that will be used to create PC prio
 
 
 ```{r eval = FALSE}
+nNodes = mesh.s[['n']]
+
 est = estimateModel(data = inputData, 
+                    nNodes = nNodes,
                     options = list(random = 1, covariates = 1), # we want to account for jittering in both
                     priors = list(beta = c(0,1), range = 114, USpatial = 1, alphaSpatial = 0.05))
 
