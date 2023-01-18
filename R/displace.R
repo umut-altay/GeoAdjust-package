@@ -1,4 +1,4 @@
-#' Randomly displace (Jitters) a set of locations
+#' Randomly displaces (Jitters) a set of locations
 #'
 #' @param scale Scaling factor. Use 1 to apply default maximum jittering distances of DHS. Values other than 1 will scale the default values.
 #' @param locKM A data frame of the coordinates (in kilometers) of the corresponding locations that are to be jittered. The first column is easting (in kilometers) and the second column is northing (in kilometers)
@@ -8,7 +8,7 @@
 #' @param boundary A logical constant (TRUE/FALSE). When TRUE is chosen, administrative area borders are respected and the jittering is repeated until the jittered location lands into the same administrative area that it was initially located within. When FALSE is chosen the administrative area borders are not respected while jittering
 #' @return A matrix containing the coordinates of the displaced locations
 #' @examples
-#' displace(scale = NULL, locKM = NULL, urbanRural = NULL, Admin2ShapeFile = NULL, check1 = NULL, boundary = NULL)
+#' locJittered <- displace(scale = scale, locKM = locKM, urbanRural = urbanRural, Admin2ShapeFile = Admin2ShapeFile, check1 = check1, boundary = TRUE)
 #' @export
 #' @import sp
 displace = function(scale, locKM, urbanRural, AdminShapeFile, check1, boundary){
@@ -20,8 +20,8 @@ displace = function(scale, locKM, urbanRural, AdminShapeFile, check1, boundary){
     newLocationSet=data.frame(east = rep(NA, nLoc), north = rep(NA, nLoc))
     for (i in 1:nLoc){
       repeat{
-        east = eastOriginal[i]; north = northOriginal[i]; angle = random.angle(1)
-        distance = random.distance(type = urbanRural[i], s = scale[j])
+        east = eastOriginal[i]; north = northOriginal[i]; angle = randomAngle(1)
+        distance = randomDistance(type = urbanRural[i], s = scale[j])
         newPoint_eastNorth = relocate(east = east, north = north, angle = angle, distance = distance)
         if (boundary == "TRUE"){
           newPoint_spatialPointsObject = SpatialPoints(cbind(newPoint_eastNorth[,1], newPoint_eastNorth[,2]), proj4string = CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"), bbox = NULL)

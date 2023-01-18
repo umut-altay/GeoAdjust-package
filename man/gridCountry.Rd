@@ -2,23 +2,23 @@
 % Please edit documentation in R/gridCountry.R
 \name{gridCountry}
 \alias{gridCountry}
-\title{Create a set of prediction locations, chosen randomly from a prediction grid}
+\title{Creates a grid of locations within the national borders of a country of interest}
 \usage{
-gridCountry(admin0, m, n, nPred)
+gridCountry(admin0, m, n)
 }
 \arguments{
-\item{admin0}{A SpatialPolygonsdataframe object reresenting the country (admin0) borders}
+\item{admin0}{A SpatialPolygonsDataFrame object representing the national (admin0) level borders of the country}
 
-\item{m}{A value representing the length of the segments that the longitude range of the country will be divided into}
+\item{m}{A value representing the number of points that the longitude range of the country will be divided by}
 
-\item{n}{A value representing the length of the segments that the latitude range of the country will be divided into}
+\item{n}{A value representing the number of points that the latitude range of the country will be divided by}
 }
 \value{
-A data frame containing the coordinates (in degrees and in kilometers) of a set of prediction points
+A data frame containing the coordinates (in degrees and in kilometers) of a set of prediction points on a grid
 }
 \description{
-Create a set of prediction locations, chosen randomly from a prediction grid
+Creates a grid of locations within the national borders of a country of interest
 }
 \examples{
-gridCountry(admin0 = NULL, m = NULL, n = NULL, nPred = NULL)
+grid <- gridCountry(admin0 = admin0, m = m, n = n)
 }

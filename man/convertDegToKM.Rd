@@ -2,7 +2,7 @@
 % Please edit documentation in R/convertDegToKM.R
 \name{convertDegToKM}
 \alias{convertDegToKM}
-\title{Convert a set of coordinates in degrees into a new set of coordinates in kilometers.}
+\title{Converts a set of coordinates in degrees into a new set of coordinates in The Universal Transverse Mercator (UTM) zone:37 coordinate system}
 \usage{
 convertDegToKM(
   loc,
@@ -14,11 +14,11 @@ convertDegToKM(
 \item{loc}{A two column matrix of coordinates (The first column is longitude and the second column is latitude).}
 }
 \value{
-A two column matrix of coordinates (The first column is easting and the second column is northing).
+A two column matrix of The Universal Transverse Mercator (UTM) zone:37 coordinate system (https://www.usgs.gov/faqs/what-does-term-utm-mean-utm-better-or-more-accurate-latitudelongitude).
 }
 \description{
-Convert a set of coordinates in degrees into a new set of coordinates in kilometers.
+Converts a set of coordinates in degrees into a new set of coordinates in The Universal Transverse Mercator (UTM) zone:37 coordinate system
 }
 \examples{
-convertDegToKM(loc = NULL)
+locKM <- convertDegToKM(loc = loc)
 }

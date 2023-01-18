@@ -1,11 +1,11 @@
-#' Create a Matern covariance matrix.
+#' Creates a Matern covariance matrix.
 #'
 #' @param dMat Distance matrix.
 #' @param range Spatial range in kilometers.
 #' @param stdDev Marginal variance.
 #' @return Matern covariance matrix.
 #' @examples
-#' covMatern(dMat = NULL, range = NULL, stdDev = NULL)
+#' covMat <- covMatern(dMat = dMat, range = range, stdDev = stdDev)
 #' @export
 #' @import INLA
 covMatern = function(dMat, range, stdDev){

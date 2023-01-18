@@ -2,7 +2,7 @@
 % Please edit documentation in R/prepare_input.R
 \name{prepare_input}
 \alias{prepare_input}
-\title{Prepare TMB inputs}
+\title{Prepares input data list for the model estimation with "estimateMoodel function}
 \usage{
 prepare_input(
   response = NULL,
@@ -42,9 +42,9 @@ prepare_input(
 A list containing a list of data inputs for TMB, the corresponding mesh and the corresponding matrix of observation locations
 }
 \description{
-Prepare TMB inputs
+Prepares input data list for the model estimation with "estimateMoodel function
 }
 \examples{
-prepare_input(response, locObs, modelParams, otherValues, jScale, urban, mesh.s, adminMap, nSubAPerPoint, nSubRPerPoint,
-covariateData, rangeMaternPri)
+inputData <- prepare_input(response = response, locObs = locObs, modelParams = modelParams, otherValues = otherValues, jScale = jScale, urban = urban, mesh.s = mesh.s, adminMap = adminMap, nSubAPerPoint = nSubAPerPoint, nSubRPerPoint = nSubRPerPoint,
+covariateData = covariateData, rangeMaternPri = rangeMaternPri)
 }

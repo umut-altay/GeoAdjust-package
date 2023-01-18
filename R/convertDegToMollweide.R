@@ -1,9 +1,9 @@
-#' Convert a set of coordinates in degrees into a new set of coordinates in Mollweide coordinate system.
+#' Converts a set of coordinates in degrees into a new set of coordinates in Mollweide coordinate system.
 #'
 #' @param loc A two column matrix of coordinates (The first column is longitude and the second column is latitude).
-#' @return A two column matrix of coordinates in Mollweide coordinate system.
+#' @return A two column matrix of coordinates in Mollweide (https://pubs.usgs.gov/pp/1395/report.pdf) coordinate system.
 #' @examples
-#' convertDegToMollweide(loc = NULL)
+#' locMoll <- convertDegToMollweide(loc = loc)
 #' @export
 #' @import sp
 convertDegToMollweide = function(loc){

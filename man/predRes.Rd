@@ -2,7 +2,7 @@
 % Please edit documentation in R/predRes.R
 \name{predRes}
 \alias{predRes}
-\title{Predict}
+\title{Predicts new outcomes for the response variable}
 \usage{
 predRes(obj, predCoords)
 }
@@ -16,7 +16,7 @@ A matrix called "PredictedResponses", containing the mean, median,
 standard deviation and the lower and the upper bounds of 95% credible intervals
 }
 \description{
-Predict
+Predicts new outcomes for the response variable
 }
 \examples{
 predRes(obj, predCoords)
