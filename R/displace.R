@@ -1,14 +1,31 @@
 #' Randomly displaces (Jitters) a set of locations
 #'
-#' @param scale Scaling factor. Use 1 to apply default maximum jittering distances of DHS. Values other than 1 will scale the default values.
-#' @param locKM A data frame of the coordinates (in kilometers) of the corresponding locations that are to be jittered. The first column is easting (in kilometers) and the second column is northing (in kilometers)
-#' @param urbanRural A vector containing the urbanicity classification types of the administrative areas that the corresponding locations are located within  : U for urban areas, R for rural areas
-#' @param AdminShapeFile A shape file containing the borders of the administrative areas that will be respected (or not) while the locations are being jittered
-#' @param check1 A data frame containing the names of the administrative areas that each location is initially located within. It is being used to compare the initial administrative area of each location with the administrative area that they land into after jittering. The data frame can be obtained by sp::over(yourLocations, AdminShapeFile, returnList = FALSE)
-#' @param boundary A logical constant (TRUE/FALSE). When TRUE is chosen, administrative area borders are respected and the jittering is repeated until the jittered location lands into the same administrative area that it was initially located within. When FALSE is chosen the administrative area borders are not respected while jittering
+#' @param scale Scaling factor. Use 1 to apply default maximum jittering
+#' distances of DHS. Values other than 1 will scale the default values.
+#' @param locKM A data frame of the coordinates (in kilometers) of the
+#' corresponding locations that are to be jittered. The first column is easting
+#'  (in kilometers) and the second column is northing (in kilometers)
+#' @param urbanRural A vector containing the urbanicity classification types of
+#' the administrative areas that the corresponding locations are located within
+#'   : U for urban areas, R for rural areas
+#' @param AdminShapeFile A shape file containing the borders of the
+#' administrative areas that will be respected (or not) while the locations are
+#' being jittered
+#' @param check1 A data frame containing the names of the administrative areas
+#' that each location is initially located within. It is being used to compare
+#' the initial administrative area of each location with the administrative
+#' area that they land into after jittering. The data frame can be obtained
+#' by sp::over(yourLocations, AdminShapeFile, returnList = FALSE)
+#' @param boundary A logical constant (TRUE/FALSE). When TRUE is chosen,
+#' administrative area borders are respected and the jittering is repeated until
+#'  the jittered location lands into the same administrative area that it was
+#'  initially located within. When FALSE is chosen the administrative area
+#'  borders are not respected while jittering
 #' @return A matrix containing the coordinates of the displaced locations
 #' @examples
-#' locJittered <- displace(scale = scale, locKM = locKM, urbanRural = urbanRural, Admin2ShapeFile = Admin2ShapeFile, check1 = check1, boundary = TRUE)
+#' locJittered <- displace(scale = scale, locKM = locKM,
+#' urbanRural = urbanRural, Admin2ShapeFile = Admin2ShapeFile, check1 = check1,
+#' boundary = TRUE)
 #' @export
 #' @import sp
 displace = function(scale, locKM, urbanRural, AdminShapeFile, check1, boundary){

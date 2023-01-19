@@ -1,12 +1,13 @@
 #' Predicts new outcomes for the response variable
+#'
 #' @param nCov Number of covariates (including the intercept)
 #' @param mesh.s A mesh created based on the country borders
 #' @param covariateData A list containing the covariate rasters
 #' @param obj The output object created by the "estimateModel" function that contains the TMB components for predictions
 #' @param predCoords A matrix containing the coordinates of the prediction locations in UTM zone:37
 #' @param flag A value indicating the type of the likelihood that will be used. Pass 0 for Gaussian, 1 for binomial and 2 for Poisson likelihoods.
-#' @return A matrix called "PredictedResponses", containing the mean, median,
-#' standard deviation and the lower and the upper bounds of 95% credible intervals
+#' @return A list containing a matrix called "PredictedResponses", and another matrix called "eta.samples".  The matrix "PredictedResponses" contains the mean, median,
+#' standard deviation and the lower and the upper bounds of 95% credible intervals. The matrix "eta.samples" contains the sampled values
 #' @examples
 #' predRes(obj, predCoords, nCov, mesh, covariateData)
 #' @export
@@ -30,11 +31,11 @@ predRes = function(obj = obj, predCoords = predCoords, nCov = nCov, covariateDat
     z <- as.matrix(z)
     mu + z
 
-
+  }
     prec = Qtest
     L = Cholesky(prec, super = T)
 
-    A.pred = inla.spde.make.A(mesh = mesh.s, loc = predCoords)
+    A.pred = inla.spde.make.A(mesh = mesh.s, loc = as.matrix(predCoords))
     #
     t.draws <- rmvnorm_prec(mu = mu , chol_prec = L, n.sims = 10000)
     parnames <- c(names(mu))
@@ -81,12 +82,9 @@ predRes = function(obj = obj, predCoords = predCoords, nCov = nCov, covariateDat
                                 lower = (apply(eta.samples, 1, quantile, .025, na.rm = TRUE)),  #na.rm = TRUE is newly added
                                 upper = (apply(eta.samples, 1, quantile, .975, na.rm = TRUE)))
 
-    return(PredictedResponses)
+    return(list(PredictedResponses = PredictedResponses, eta.samples = eta.samples))
 
   }
 
 
 
-
-
-}

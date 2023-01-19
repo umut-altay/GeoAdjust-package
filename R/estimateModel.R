@@ -79,6 +79,6 @@ estimateModel = function(data = NULL, options = NULL, priors = NULL, nNodes = NU
 
   res = data.frame(parameters = c("range", "sigma", "intercept", parNames),
                     estimates = c(range_estimate, sigma_estimate, beta_estimate))
-  return(res, obj)
+  return(list(res=res, obj=obj))
 
 }

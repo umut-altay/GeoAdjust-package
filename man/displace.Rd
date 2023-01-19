@@ -7,17 +7,32 @@
 displace(scale, locKM, urbanRural, AdminShapeFile, check1, boundary)
 }
 \arguments{
-\item{scale}{Scaling factor. Use 1 to apply default maximum jittering distances of DHS. Values other than 1 will scale the default values.}
+\item{scale}{Scaling factor. Use 1 to apply default maximum jittering
+distances of DHS. Values other than 1 will scale the default values.}
 
-\item{locKM}{A data frame of the coordinates (in kilometers) of the corresponding locations that are to be jittered. The first column is easting (in kilometers) and the second column is northing (in kilometers)}
+\item{locKM}{A data frame of the coordinates (in kilometers) of the
+corresponding locations that are to be jittered. The first column is easting
+ (in kilometers) and the second column is northing (in kilometers)}
 
-\item{urbanRural}{A vector containing the urbanicity classification types of the administrative areas that the corresponding locations are located within  : U for urban areas, R for rural areas}
+\item{urbanRural}{A vector containing the urbanicity classification types of
+the administrative areas that the corresponding locations are located within
+  : U for urban areas, R for rural areas}
 
-\item{AdminShapeFile}{A shape file containing the borders of the administrative areas that will be respected (or not) while the locations are being jittered}
+\item{AdminShapeFile}{A shape file containing the borders of the
+administrative areas that will be respected (or not) while the locations are
+being jittered}
 
-\item{check1}{A data frame containing the names of the administrative areas that each location is initially located within. It is being used to compare the initial administrative area of each location with the administrative area that they land into after jittering. The data frame can be obtained by sp::over(yourLocations, AdminShapeFile, returnList = FALSE)}
+\item{check1}{A data frame containing the names of the administrative areas
+that each location is initially located within. It is being used to compare
+the initial administrative area of each location with the administrative
+area that they land into after jittering. The data frame can be obtained
+by sp::over(yourLocations, AdminShapeFile, returnList = FALSE)}
 
-\item{boundary}{A logical constant (TRUE/FALSE). When TRUE is chosen, administrative area borders are respected and the jittering is repeated until the jittered location lands into the same administrative area that it was initially located within. When FALSE is chosen the administrative area borders are not respected while jittering}
+\item{boundary}{A logical constant (TRUE/FALSE). When TRUE is chosen,
+administrative area borders are respected and the jittering is repeated until
+ the jittered location lands into the same administrative area that it was
+ initially located within. When FALSE is chosen the administrative area
+ borders are not respected while jittering}
 }
 \value{
 A matrix containing the coordinates of the displaced locations
@@ -26,5 +41,7 @@ A matrix containing the coordinates of the displaced locations
 Randomly displaces (Jitters) a set of locations
 }
 \examples{
-locJittered <- displace(scale = scale, locKM = locKM, urbanRural = urbanRural, Admin2ShapeFile = Admin2ShapeFile, check1 = check1, boundary = TRUE)
+locJittered <- displace(scale = scale, locKM = locKM,
+urbanRural = urbanRural, Admin2ShapeFile = Admin2ShapeFile, check1 = check1,
+boundary = TRUE)
 }

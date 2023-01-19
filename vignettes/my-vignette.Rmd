@@ -214,7 +214,7 @@ nigeria.data$north = rep(NA, length(nigeria.data$long))
 nigeria.data[,c("east", "north")] = convertDegToKM(nigeria.data[,c("long", "lat")])
 
 # remove non matching first row
-nigeria.data = nigeria.data[-1,]
+#nigeria.data = nigeria.data[-1,]
 ```
 
 Fine tuning:
@@ -250,7 +250,7 @@ which(is.na(check1$NAME_2))
 # [1]   48  122  205  848  857 1116 1122 1287 1328
 
 # drop the corresponding rows from the main data set :
-#nigeria.data = nigeria.data[-c(48, 122,  205,  848,  857, 1116, 1122, 1287, 1328),]
+nigeria.data = nigeria.data[-c( 48, 122, 205, 848,  857, 1116, 1122, 1287, 1328),]
 ```
 
 At this point the data frame `nigeria.data` should contain the variables that will be needed further in the analysis:
@@ -340,7 +340,7 @@ We need to prepare a list of input items to be passed into the C++ script of TMB
 
 
 ```{r eval = FALSE}
-
+library(raster)
 r = raster::raster("Nga_ppp_v2c_2015.tif")
 
 ```
@@ -511,7 +511,7 @@ Previously we estimated the model parameters using "estimateModel" function and 
 The function `predRes` makes the predictions by sampling the model paraneters 10.000 times for each prediction location. The returns a five columns matrix, which contains the mean, median, standard deviation, lower and upper 95% credible intervals corresponding to the sampled values, respectively.
 
 ```{r eval=FALSE}
-
+predCoords = data.frame(east = predCoord["east"], north = predCoord["north"])
 predictions = predRes(obj = est[["obj"]], predCoords = predCoords, nCov = 2, 
                       covariateData = covariateData, mesh.s = mesh.s, flag = 1)
 
