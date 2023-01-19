@@ -8,6 +8,7 @@ predRes(
   obj = obj,
   predCoords = predCoords,
   nCov = nCov,
+  covariateData = covariateData,
   mesh.s = mesh.s,
   flag = flag
 )
@@ -15,19 +16,19 @@ predRes(
 \arguments{
 \item{obj}{The output object created by the "estimateModel" function that contains the TMB components for predictions}
 
-\item{predCoords}{A matrix containing the coordinates of the prediction locations in degrees}
+\item{predCoords}{A matrix containing the coordinates of the prediction locations in UTM zone:37}
 
 \item{nCov}{Number of covariates (including the intercept)}
+
+\item{covariateData}{A list containing the covariate rasters}
 
 \item{mesh.s}{A mesh created based on the country borders}
 
 \item{flag}{A value indicating the type of the likelihood that will be used. Pass 0 for Gaussian, 1 for binomial and 2 for Poisson likelihoods.}
-
-\item{covariateData}{A list containing the covariate rasters}
 }
 \value{
-A matrix called "PredictedResponses", containing the mean, median,
-standard deviation and the lower and the upper bounds of 95% credible intervals
+A list containing a matrix called "PredictedResponses", and another matrix called "eta.samples".  The matrix "PredictedResponses" contains the mean, median,
+standard deviation and the lower and the upper bounds of 95% credible intervals. The matrix "eta.samples" contains the sampled values
 }
 \description{
 Predicts new outcomes for the response variable

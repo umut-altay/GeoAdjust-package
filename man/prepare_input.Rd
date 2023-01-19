@@ -2,7 +2,8 @@
 % Please edit documentation in R/prepare_input.R
 \name{prepare_input}
 \alias{prepare_input}
-\title{Prepares input data list for the model estimation with "estimateMoodel function}
+\title{Prepares input data list for the model estimation with "estimateMoodel
+function}
 \usage{
 prepare_input(
   response = NULL,
@@ -18,33 +19,49 @@ prepare_input(
 )
 }
 \arguments{
-\item{response}{A list containing the number of trials (ns) and number of successes (ys) for the binomial response, or a list containing the response values (ys) for the Gaussian response.}
+\item{response}{A list containing the number of trials (ns) and number of
+successes (ys) for the binomial response, or a list containing the response
+values (ys) for the Gaussian response.}
 
-\item{locObs}{A matrix containing the coordinates of the already jittered survey cluster centers in kilometers}
+\item{locObs}{A matrix containing the coordinates of the already jittered
+survey cluster centers in kilometers}
 
-\item{likelihood}{A value indication which likelihood will be used. (1 for binomial and 0 for Gaussian)}
+\item{likelihood}{A value indication which likelihood will be used. (1 for
+binomial and 0 for Gaussian)}
 
-\item{jScale}{Jittering scale, where 1 represents the default DHS jittering scheme}
+\item{jScale}{Jittering scale, where 1 represents the default DHS jittering
+scheme}
 
-\item{urban}{A vector containing the urbanization classification of the administrative area that each cluster center is initially located within. (U for urban and R for rural)}
+\item{urban}{A vector containing the urbanization classification of the
+administrative area that each cluster center is initially located within.
+(U for urban and R for rural)}
 
 \item{mesh.s}{A mesh created based on the country borders}
 
-\item{adminMap}{A shape file containing the borders of the administrative area level, which was respected while the cluster centers were initially being jittered. (can be obtained from https://gadm.org)}
+\item{adminMap}{A shape file containing the borders of the administrative
+area level, which was respected while the cluster centers were initially
+being jittered. (can be obtained from https://gadm.org)}
 
-\item{nSubAPerPoint}{A value representing the number of unique sub-integration point angles per integration point}
+\item{nSubAPerPoint}{A value representing the number of unique
+sub-integration point angles per integration point}
 
-\item{nSubRPerPoint}{A value representing the number of unique sub-integration point radii per integration point}
+\item{nSubRPerPoint}{A value representing the number of unique
+sub-integration point radii per integration point}
 
 \item{covariateData}{A list containing the covariate rasters}
 }
 \value{
-A list containing a list of data inputs for TMB, the corresponding mesh and the corresponding matrix of observation locations
+A list containing a list of data inputs for TMB, the corresponding
+mesh and the corresponding matrix of observation locations
 }
 \description{
-Prepares input data list for the model estimation with "estimateMoodel function
+Prepares input data list for the model estimation with "estimateMoodel
+function
 }
 \examples{
-inputData <- prepare_input(response = response, locObs = locObs, modelParams = modelParams, otherValues = otherValues, jScale = jScale, urban = urban, mesh.s = mesh.s, adminMap = adminMap, nSubAPerPoint = nSubAPerPoint, nSubRPerPoint = nSubRPerPoint,
+inputData <- prepare_input(response = response, locObs = locObs,
+modelParams = modelParams, otherValues = otherValues, jScale = jScale,
+urban = urban, mesh.s = mesh.s, adminMap = adminMap,
+nSubAPerPoint = nSubAPerPoint, nSubRPerPoint = nSubRPerPoint,
 covariateData = covariateData, rangeMaternPri = rangeMaternPri)
 }
