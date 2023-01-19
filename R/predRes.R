@@ -1,24 +1,26 @@
 #' Predicts new outcomes for the response variable
-#'
+#' @param nCov Number of covariates (including the intercept)
+#' @param mesh.s A mesh created based on the country borders
+#' @param covariateData A list containing the covariate rasters
 #' @param obj The output object created by the "estimateModel" function that contains the TMB components for predictions
-#' @param predCoords A matrix containing the coordinates of the prediction locations in kilometers
+#' @param predCoords A matrix containing the coordinates of the prediction locations in UTM zone:37
+#' @param flag A value indicating the type of the likelihood that will be used. Pass 0 for Gaussian, 1 for binomial and 2 for Poisson likelihoods.
 #' @return A matrix called "PredictedResponses", containing the mean, median,
 #' standard deviation and the lower and the upper bounds of 95% credible intervals
 #' @examples
-#' predRes(obj, predCoords)
+#' predRes(obj, predCoords, nCov, mesh, covariateData)
 #' @export
 #' @import TMB
 #' @import SUMMER
-predRes = function(obj, predCoords){
-  obj <- normalize(obj, flag="flag1", value = 0)
-  opt0 = optim(par=obj$par, fn = obj$fn, gr = obj$gr,
-               method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1)))
+predRes = function(obj = obj, predCoords = predCoords, nCov = nCov, covariateData = covariateData, mesh.s = mesh.s, flag = flag){
+
+
   par <- obj$env$last.par
   Qtest = obj$env$spHess(par, random = TRUE)
 
   #Sampling
-  mu <- c(par[-c(7,8)])
-
+  mu <- c(par[-c(nCov+1,nCov+2)]) # nCov+1 refers to log_tau
+                                  # nCov+2 refers to log_kappa
   # Simulate draws
   rmvnorm_prec <- function(mu, chol_prec, n.sims) {
     z <- matrix(rnorm(length(mu) * n.sims), ncol=n.sims)
@@ -40,35 +42,38 @@ predRes = function(obj, predCoords){
     epsilon_draws  <- t.draws[parnames == 'Epsilon_s',]
     beta_draws<- t.draws[parnames == 'beta',]
 
+    predCoordsDegree = convertKMToDeg(predCoords)
+    predCoordsDegree = SpatialPoints(cbind(predCoordsDegree[,1], predCoordsDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
+
+    # Extract the corresponding covariate values at prediction locations
+    for (i in 1:length(covariateData)){
+      #Extract covariate values from data rasters at predCoords
+      assign(paste0("covariatePred", i), raster::extract(covariateData[[i]], predCoordsDegree, ncol=2))
+    }
+
+    nLoc_pred = length(predCoords[,1])
+
+    covariatesAtPred = rep(1, nLoc_pred)
+
+    for(i in 1:length(covariateData)){
+      covariatesAtPred = cbind(covariatesAtPred, get(paste0("covariatePred", i)))
+    }
+
+    covariatesAtPred[is.nan(covariatesAtPred)] = 0
+    covariatesAtPred[is.na(covariatesAtPred)] = 0
+
     eta.samples = covariatesAtPred%*%beta_draws + as.matrix(A.pred%*%epsilon_draws)
     #
-    trueValues = covariatesAtPred%*%betaSim + u.sim
-    trueValues = trueValues[,1]
-    #
-    nPred = length(eta.samples[,1])
-    coverage = 0
-    for (m in 1:nPred){
-      qnt = quantile(eta.samples[m,], c(0.025, 0.975))
-      if ((qnt[[1]]<trueValues[[m]])&(qnt[[2]]>trueValues[[m]])){
-        coverage = coverage + 1
-      }
-    }
-    coverage = coverage/nPred
-    #
-    Logscores = logs_sample(y = trueValues, dat = eta.samples)
-    Logscores = mean(Logscores)
-    #
-    CRPS = crps_sample(y = trueValues, dat = eta.samples, method = "edf")
-    CRPS = mean(CRPS)
-    #
-    BIAS = mean(rowMeans(eta.samples)-trueValues)
-    #
-    RMSE = sqrt(mean((rowMeans(eta.samples)-trueValues)^2))
-    #
-    if (flag2 != 0){
+
+    if (flag == 1){
       #   # Convert to probability scale
       eta.samples = expit(eta.samples)
+    } else if (flag ==2){
+      eta.samples = exp(eta.samples)
+    } else{
+      eta.samples = eta.samples
     }
+
     # # Find the median and sd across draws, as well as 95% intervals
     PredictedResponses <- cbind(mean = (apply(eta.samples, 1, mean)),
                                 median = (apply(eta.samples, 1, median)),

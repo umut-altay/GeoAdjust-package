@@ -506,13 +506,22 @@ head(predCoord)   # randomly chosen prediction points:
 
 ### Predictions at the new prediction points
 
-Previously we estimated the model parameters using "estimateModel" function and the function created an output object called "obj", besides the parameter estimates. We will now use this TMB object to make predictions at the set of prediction points that we have just created. We use "predRes" function for the predictions. The function needs the TMB object ("obj") and the coordinates of the prediction points in kilometers.
+Previously we estimated the model parameters using "estimateModel" function and the function created an output object called "obj", besides the parameter estimates. We will now use this TMB object to make predictions at the set of prediction points that we have just created. We use "predRes" function for the predictions. The function needs a number of arguments to be passes in. First, it requires the TMB object that is also called "obj", which we have just created by the `estimateModel` function. The number of covariates (including the intercept) , the coordinates of the prediction locations, and the covariate rasters should be passed via the arguments nCov, predCoords, and covariateData, respectively. The function uses these for extracting the covariate values at each prediction location and construct a design matrix. The prediction grid can be created and the coordinates of each point on the grid can be obtained via `gridCountry` function. Another input that the function also needs is the triangulation mesh, which will be used together with the prediction coordinates for constructing the projector matrix. The last argument is the "flag" which refers to the type of likelihood that is being used. The flag takes 0 for Gaussian, 1 for binomial and 2 for Poisson likelihoods, respectively. The flag is used for deciding the way to obtain the predicted responses from the corresponding linear predictor. 
+
+The function `predRes` makes the predictions by sampling the model paraneters 10.000 times for each prediction location. The returns a five columns matrix, which contains the mean, median, standard deviation, lower and upper 95% credible intervals corresponding to the sampled values, respectively.
 
 ```{r eval=FALSE}
 
-predictions = predRes(obj = est[["obj"]], predCoords = predCoords)
+predictions = predRes(obj = est[["obj"]], predCoords = predCoords, nCov = 2, 
+                      covariateData = covariateData, mesh.s = mesh.s, flag = 1)
 
 ```
+
+
+
+
+
+
 
 ## References
 
