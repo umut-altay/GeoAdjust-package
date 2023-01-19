@@ -4,12 +4,26 @@
 \alias{predRes}
 \title{Predicts new outcomes for the response variable}
 \usage{
-predRes(obj, predCoords)
+predRes(
+  obj = obj,
+  predCoords = predCoords,
+  nCov = nCov,
+  mesh.s = mesh.s,
+  flag = flag
+)
 }
 \arguments{
 \item{obj}{The output object created by the "estimateModel" function that contains the TMB components for predictions}
 
-\item{predCoords}{A matrix containing the coordinates of the prediction locations in kilometers}
+\item{predCoords}{A matrix containing the coordinates of the prediction locations in degrees}
+
+\item{nCov}{Number of covariates (including the intercept)}
+
+\item{mesh.s}{A mesh created based on the country borders}
+
+\item{flag}{A value indicating the type of the likelihood that will be used. Pass 0 for Gaussian, 1 for binomial and 2 for Poisson likelihoods.}
+
+\item{covariateData}{A list containing the covariate rasters}
 }
 \value{
 A matrix called "PredictedResponses", containing the mean, median,
@@ -19,5 +33,5 @@ standard deviation and the lower and the upper bounds of 95% credible intervals
 Predicts new outcomes for the response variable
 }
 \examples{
-predRes(obj, predCoords)
+predRes(obj, predCoords, nCov, mesh, covariateData)
 }
