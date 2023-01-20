@@ -5,7 +5,12 @@
 #' @param stdDev Marginal variance.
 #' @return Matern covariance matrix.
 #' @examples
-#' covMat <- covMatern(dMat = dMat, range = range, stdDev = stdDev)
+#' data("clusterData")
+#' loc = cbind(clusterData$east, clusterData$north)
+#' space.range = 114
+#' space.sigma = 1
+#' covMat <- covMatern(dMat = as.matrix(dist(loc)),
+#' range = space.range, stdDev = space.sigma)
 #' @export
 #' @import INLA
 covMatern = function(dMat, range, stdDev){
