@@ -7,7 +7,10 @@
 #' @export
 #' @import INLA
 #' @examples
+#' \dontrun{
 #' mesh.s <- meshCountry(admin0 = admin0, max.edge = c(25, 50), offset = -.08)
+#' }
+#' @export
 meshCountry = function(admin0,max.edge,offset){
   mesh.s <- inla.mesh.2d(boundary = admin0,
                          offset=-.08,

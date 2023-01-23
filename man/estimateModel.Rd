@@ -4,10 +4,12 @@
 \alias{estimateModel}
 \title{Estimates model parameters}
 \usage{
-estimateModel(data = NULL, options = NULL, priors = NULL, nNodes = NULL)
+estimateModel(data = NULL, nNodes = NULL, options = NULL, priors = NULL)
 }
 \arguments{
 \item{data}{A data input list that is created by prepare_input() function}
+
+\item{nNodes}{number of mesh nodes}
 
 \item{options}{A list containing two components, namely "random" and " covariates", representing the spatial random field and covariates.
 Values of 1 and 0 turn the accounting for jittering in these components on and off.
@@ -17,8 +19,6 @@ Example usage : options = list(random = 0, covariates = 1) --> then jittering is
 to the covariates (including the intercept). The first element of it is the mean and the second one is the
 standard deviation of Gaussian prior. Range is a value representing the median range in kilometers, which will be used for constructing the PC (Penalized-complexity) priors.
 Example usage : priors = list(beta = c(0,1), range = 114)}
-
-\item{nNodes}{number of mesh nodes}
 }
 \value{
 A data frame called "res", containing the estimated model parameters, and "obj" which contains the required components for predictions
@@ -28,5 +28,7 @@ with the model (if wanted).
 Estimates model parameters
 }
 \examples{
-results <- estimateModel(data = data, options = options, priors = priors)
+\dontrun{
+results <- estimateModel(data = data, nNodes = nNodes, options = list(random = 1, covariates = 1), priors = list(beta = c(0,1), range = 114))
+}
 }

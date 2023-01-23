@@ -20,5 +20,7 @@ A constrained refined Delaunay triangulation mesh created based on the country b
 Creates a constrained refined Delaunay triangulation mesh based on the country borders.
 }
 \examples{
+\dontrun{
 mesh.s <- meshCountry(admin0 = admin0, max.edge = c(25, 50), offset = -.08)
+}
 }

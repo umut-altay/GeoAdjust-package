@@ -12,10 +12,12 @@
 #' @return A data frame called "res", containing the estimated model parameters, and "obj" which contains the required components for predictions
 #' with the model (if wanted).
 #' @examples
-#' results <- estimateModel(data = data, options = options, priors = priors)
+#' \dontrun{
+#' results <- estimateModel(data = data, nNodes = nNodes, options = list(random = 1, covariates = 1), priors = list(beta = c(0,1), range = 114))
+#' }
 #' @export
 #' @import TMB
-estimateModel = function(data = NULL, options = NULL, priors = NULL, nNodes = NULL){
+estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NULL){
 
   flagRandomField = options[["random"]]
   flagCovariates = options[["covariates"]]

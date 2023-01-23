@@ -5,7 +5,9 @@
 #' @param n A value representing the number of points that the latitude range of the country will be divided by
 #' @return A data frame containing the coordinates (in degrees and in kilometers) of a set of prediction points on a grid
 #' @examples
+#' \dontrun{
 #' grid <- gridCountry(admin0 = admin0, m = m, n = n)
+#' }
 #' @export
 #' @import spatialEco
 gridCountry = function(admin0, m, n){
