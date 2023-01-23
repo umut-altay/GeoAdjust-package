@@ -9,9 +9,10 @@ meshCountry(admin0, max.edge, offset)
 \arguments{
 \item{admin0}{A SpatialPolygonsDataFrame representing the country borders.}
 
-\item{max.edge}{max.edge values for the inla.mesh.2d object}
+\item{max.edge}{A vector of two values. The first and the second elements of
+the vector represent the largest allowed triangle lengths for the inner and outer mesh, respectively.}
 
-\item{offset}{offset value for the inla.mesh.2d object}
+\item{offset}{offset value representing the extension distance for the inla.mesh.2d object}
 }
 \value{
 A constrained refined Delaunay triangulation mesh created based on the country borders.

@@ -56,53 +56,6 @@ Finally, the covariates should be read into R as the raster layers. Accordingly,
 
 <!-- This package aims to provide fast and useful tools that allow doing inference and prediction while adjusting/accounting for the positional error in the GPS coordinates of the survey cluster centers. -->
 
-## The Adjusted Model
-
-The methods included in GeoAdjust package utilize the auto-differentiation in Template Model Builder (TMB) R package. The approach involves creating a set of integration points within equidistant rings around each cluster center. Each cluster center is taken as the first integration point of the corresponding point set, and then depending on the urbanicity of the cluster, different number of rings are created together with their own sets of integration points. This approach allows us to consider the unknown true locations as the nuisance parameters in the model and then integrate them out by utilizing the auto differentiation of the Template Model builder (TMB) R-package. TMB operates via a C++ script which  contains the joint negative log-likelihood function and allows computing the contribution of each integration point to the joint negative log-likelihood.
-
-We call the true GPS coordinates of the centroids of each household cluster as the "true locations", whereas the published GPS coordinates of the cluster centers are referred as the "observed locations". Let $\boldsymbol{s}_1^*, \ldots, \boldsymbol{s}_C^* \in\mathcal{D}$ denote the true locations of the corresponding published DHS cluster centers $\boldsymbol{s}_1, \ldots, \boldsymbol{s}_C$. Adjusting for jittering within the binomial modelling framework yields the following observation model:
-\begin{align}
-\label{eqn:adjObsModelBinomial}
-\begin{split}
-y_c | r_c,n_c &\sim \text{Binomial}(n_c, r_c), \quad \boldsymbol{s}_c|\boldsymbol{s}_c^*\sim \pi_{\mathrm{Urb}[c]}(\boldsymbol{s}_c|\boldsymbol{s}_c^*),\\
-    r_c | \boldsymbol{s}_c^* &= r(\boldsymbol{s}_c^*) = \mathrm{logit}^{-1}( \eta(\boldsymbol{s}_c^*)),
-\end{split}
-\end{align}
-
-where $r_c$ denotes the risk of interest in cluster $c$, and $\mathrm{Urb}[c]\in\{\mathrm{U}, \mathrm{R}\}$ corresponds to the urban (U) or rural (R) stratum that cluster c is located within. In this observation model, both $y_c$ and $\boldsymbol{s}_c$ are already available through the DHS data set and accordingly, treated as the observed quantities. The unobserved true locations $s_c^*$ on the other hand, are inaccessible. They are treated as the random quantities and assigned a uniform prior $s_c^*\sim \mathcal{U}(\mathcal{D})$. This implies that we treat all locations $\boldsymbol{s}_c^*$ within the maximum jittering distance from $\boldsymbol{s}_c$ as equally likely \emph{a priori}, meaning that the true location can be located anywhere within the corresponding jittering radius with equal probability.
-
-If the interest is on modelling the Poisson counts, then the adjusted model becomes:
-
-\begin{align}
-\label{eqn:adjObsModelPoisson}
-\begin{split}
-y_c | \lambda_c &\sim \text{Poisson}(\lambda_c), \quad \boldsymbol{s}_c|\boldsymbol{s}_c^*\sim \pi_{\mathrm{Urb}[c]}(\boldsymbol{s}_c|\boldsymbol{s}_c^*),\\
-    log(\lambda_c) | \boldsymbol{s}_c^* &=  \eta(\boldsymbol{s}_c^*),
-\end{split}
-\end{align}
-where, $\lambda_c$ are the Poisson counts of interest.
-
-Similarly, the following represents the adjusted Gaussian model:
-\begin{align*}
-{\mathrm{y}_\mathrm{c} \mid \mathrm{\eta}_\mathrm{\boldsymbol{s}_c^*}, \sigma_\epsilon^2 \sim \mathcal{\mathrm{\mathcal{N}}}(\eta_\mathrm{\boldsymbol{s}_c^*}, \sigma_\epsilon^2}).
-\end{align*}
-
-\begin{align*}
-\mathrm{\eta}(\mathrm{\boldsymbol{s}_c^*})=\mu+\mathrm{X}(\mathrm{\boldsymbol{s}_c^*})^T\beta+\mathrm{u}(\mathrm{\boldsymbol{s}_c^*}).
-\end{align*}
-where $\sigma_\epsilon^2$ is the nugget variance, $\mu$ is the intercept, $X$ is the design matrix and $\beta$ is a vector of covariate effect sizes.
-
-In practice, estimating these different models using GeoAdjust R-package will involve passing the relevant model components as the arguments of the corresponding functions, which will be explained in more detail within next sections.  
-
-### The SPDE Approach
-
-We model the latent spatial part $u(\cdot)$ of the observation model as a Gaussian Random Field with a Matern covariance function. The stochastic partial differential equations (SPDE) approach [@Lindgren:etal:11] provides an approximation to the Matérn GRF that results in a sparse precision matrix. This is applied by first triangulating the area of interest through $m$ nodes and then approximating the GRF $u(\cdot)$ by:
-
-\begin{equation}
-\tilde{u}(\boldsymbol{s}) = \sum_{i=1}^m w_i \phi_i(s),\label{eq:SPDE:basis}
-\end{equation}
-where $\phi_i(\cdot)$ are pyramidal basis functions and  $\boldsymbol{w} = (w_1 \ \ldots \ w_m)^\mathrm{T}$
-are weights for the basis functions. The SPDE approach results in a distribution $\boldsymbol{w}\sim\mathcal{N}_m(\boldsymbol{0}, \mathbf{Q}(\boldsymbol{\theta})^{-1})$, where $\mathbf{Q}(\boldsymbol{\theta})$ is sparse.
 
 
 ## Data Preparation
@@ -261,9 +214,58 @@ head(nigeria.data)
 ```
 
 
+## The Adjusted Model
+
+The methods included in GeoAdjust package utilize the auto-differentiation in Template Model Builder (TMB) R package [@JSSv070i05]. The approach involves creating a set of integration points within equidistant rings around each cluster center. Each cluster center is taken as the first integration point of the corresponding point set, and then depending on the urbanicity of the cluster, different number of rings are created together with their own sets of integration points. This approach considers the unknown true locations as the nuisance parameters in the model. Accordingly we use the C++ script of TMB to integrate them out by computing the contribution of each integration point to the joint negative log-likelihood.
+
+We call the true GPS coordinates of the centroids of each household cluster as the "true locations", whereas the published GPS coordinates of the cluster centers are referred as the "observed locations". Let $\boldsymbol{s}_1^*, \ldots, \boldsymbol{s}_C^* \in\mathcal{D}$ denote the true locations of the corresponding published DHS cluster centers $\boldsymbol{s}_1, \ldots, \boldsymbol{s}_C$. Adjusting for jittering within the binomial modelling framework yields the following observation model:
+\begin{align}
+\label{eqn:adjObsModelBinomial}
+\begin{split}
+y_c | r_c,n_c &\sim \text{Binomial}(n_c, r_c), \quad \boldsymbol{s}_c|\boldsymbol{s}_c^*\sim \pi_{\mathrm{Urb}[c]}(\boldsymbol{s}_c|\boldsymbol{s}_c^*),\\
+    r_c | \boldsymbol{s}_c^* &= r(\boldsymbol{s}_c^*) = \mathrm{logit}^{-1}( \eta(\boldsymbol{s}_c^*)),
+\end{split}
+\end{align}
+
+where $r_c$ denotes the risk of interest in cluster $c$, and $\mathrm{Urb}[c]\in\{\mathrm{U}, \mathrm{R}\}$ corresponds to the urban (U) or rural (R) stratum that cluster c is located within. In this observation model, both $y_c$ and $\boldsymbol{s}_c$ are already available through the DHS data set and accordingly, treated as the observed quantities. The unobserved true locations $s_c^*$ on the other hand, are inaccessible. They are treated as the random quantities and assigned a uniform prior $s_c^*\sim \mathcal{U}(\mathcal{D})$. This implies that we treat all locations $\boldsymbol{s}_c^*$ within the maximum jittering distance from $\boldsymbol{s}_c$ as equally likely \emph{a priori}, meaning that the true location can be located anywhere within the corresponding jittering radius with equal probability.
+
+If the interest is on modelling the Poisson counts, then the adjusted model becomes:
+
+\begin{align}
+\label{eqn:adjObsModelPoisson}
+\begin{split}
+y_c | \lambda_c &\sim \text{Poisson}(\lambda_c), \quad \boldsymbol{s}_c|\boldsymbol{s}_c^*\sim \pi_{\mathrm{Urb}[c]}(\boldsymbol{s}_c|\boldsymbol{s}_c^*),\\
+    log(\lambda_c) | \boldsymbol{s}_c^* &=  \eta(\boldsymbol{s}_c^*),
+\end{split}
+\end{align}
+where, $\lambda_c$ are the Poisson counts of interest.
+
+Similarly, the following represents the adjusted Gaussian model:
+\begin{align*}
+{\mathrm{y}_\mathrm{c} \mid \mathrm{\eta}_\mathrm{\boldsymbol{s}_c^*}, \sigma_\epsilon^2 \sim \mathcal{\mathrm{\mathcal{N}}}(\eta_\mathrm{\boldsymbol{s}_c^*}, \sigma_\epsilon^2}).
+\end{align*}
+
+\begin{align*}
+\mathrm{\eta}(\mathrm{\boldsymbol{s}_c^*})=\mu+\mathrm{X}(\mathrm{\boldsymbol{s}_c^*})^T\beta+\mathrm{u}(\mathrm{\boldsymbol{s}_c^*}).
+\end{align*}
+where $\sigma_\epsilon^2$ is the nugget variance, $\mu$ is the intercept, $X$ is the design matrix and $\beta$ is a vector of covariate effect sizes.
+
+In practice, estimating these different models using GeoAdjust R-package will involve passing the relevant model components as the arguments of the corresponding functions, which will be explained in more detail within the following sections.  
+
+### The SPDE Approach
+
+We model the latent spatial part $u(\cdot)$ of the observation model as a Gaussian Random Field with a Matérn covariance function. The stochastic partial differential equations (SPDE) approach [@Lindgren:etal:11] provides an approximation to the Matérn GRF that results in a sparse precision matrix. This is applied by first triangulating the area of interest through $m$ nodes and then approximating the GRF $u(\cdot)$ by:
+
+\begin{equation}
+\tilde{u}(\boldsymbol{s}) = \sum_{i=1}^m w_i \phi_i(s),\label{eq:SPDE:basis}
+\end{equation}
+where $\phi_i(\cdot)$ are pyramidal basis functions and  $\boldsymbol{w} = (w_1 \ \ldots \ w_m)^\mathrm{T}$
+are weights for the basis functions. The SPDE approach results in a distribution $\boldsymbol{w}\sim\mathcal{N}_m(\boldsymbol{0}, \mathbf{Q}(\boldsymbol{\theta})^{-1})$, where $\mathbf{Q}(\boldsymbol{\theta})$ is sparse.
+
+
 #### Triangulation - The Mesh
 
-We will construct the triangulation mesh based on the admin0 borders (in form of a SpatialPolygonsDataFrame object) of the country of interest. It is possible to manipulate the mesh resolution by setting the arguments max.edge and offset accordingly. 
+We will construct the triangulation mesh based on the national (admin0) borders of the country of interest. It is possible to manipulate the mesh resolution by setting the arguments max.edge and offset accordingly. 
 
 ```{r eval=FALSE}
 library(rgdal)
@@ -321,6 +323,7 @@ panel.grid.minor.y = element_blank())
 ![Mesh and the admin0 borders (blue)](/Users/umuta/GeoAdjust/vignettes/mesh.png){ width=100% }
 
 ## ESTIMATING MODEL PARAMETERS
+
 We constructed our method of accounting/adjusting for positional uncertainty based on approaching the unknown true locations as nuisance parameters and integrating them out of the joint maximum likelihood function. This can be seen more clearly by writing the observation model as follows:
 
 \begin{align}

@@ -9,6 +9,7 @@
 #' to the covariates (including the intercept). The first element of it is the mean and the second one is the
 #' standard deviation of Gaussian prior. Range is a value representing the median range in kilometers, which will be used for constructing the PC (Penalized-complexity) priors.
 #' Example usage : priors = list(beta = c(0,1), range = 114)
+#' @param ... Any other arguments of optim function
 #' @return A data frame called "res", containing the estimated model parameters, and "obj" which contains the required components for predictions
 #' with the model (if wanted).
 #' @examples
@@ -17,7 +18,7 @@
 #' }
 #' @export
 #' @import TMB
-estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NULL){
+estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NULL, ...){
 
   flagRandomField = options[["random"]]
   flagCovariates = options[["covariates"]]
@@ -61,7 +62,7 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   obj <- normalize(obj, flag="flag1", value = 0)
 
   opt0 = optim(par=obj$par, fn = obj$fn, gr = obj$gr,
-               method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1)))
+               method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1)), ...)
 
   par <- obj$env$last.par
 

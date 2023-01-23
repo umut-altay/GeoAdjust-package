@@ -26,7 +26,7 @@
 #' mesh and the corresponding matrix of observation locations
 #' @examples
 #' \dontrun{
-#' inputData <- prepare_input(response = response, locObs = locObs,
+#' inputData <- prepareInput(response = response, locObs = locObs,
 #' likelihood = likelihood, jScale = jScale,
 #' urban = urban, mesh.s = mesh.s, adminMap = adminMap,
 #' nSubAPerPoint = nSubAPerPoint, nSubRPerPoint = nSubRPerPoint,
@@ -34,7 +34,7 @@
 #' }
 #' @export
 #' @import INLA
-prepare_input = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
+prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
                          urban=NULL, mesh.s=NULL,
                          adminMap=NULL, nSubAPerPoint=10, nSubRPerPoint=10,
                          covariateData=NULL){
