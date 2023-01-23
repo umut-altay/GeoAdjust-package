@@ -323,6 +323,7 @@ panel.grid.minor.y = element_blank())
 ![Mesh and the admin0 borders (blue)](/Users/umuta/GeoAdjust/vignettes/mesh.png){ width=100% }
 
 ## ESTIMATING MODEL PARAMETERS
+
 We constructed our method of accounting/adjusting for positional uncertainty based on approaching the unknown true locations as nuisance parameters and integrating them out of the joint maximum likelihood function. This can be seen more clearly by writing the observation model as follows:
 
 \begin{align}
