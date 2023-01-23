@@ -29,17 +29,66 @@ knitr::opts_chunk$set(
 library(GeoAdjust)
 ```
 
-## ABSTRACT
+## Abstract
 The Demographic and Health Surveys Program (DHS) conducts household surveys in low- and middle-income countries. The surveys are designed according to the stratified cluster sampling, where each household cluster is located within either urban or rural stratum. DHS applies a number of measures in order to make sure that the privacy of the survey participants is protected. These measures involve first aggregating the collected data into the GPS coordinates of the household cluster centers, and then randomly diplacing the true locations of cluster centers with respect to a known jittering algorithm. The random displacement leads the DHS coordinates to contain positional error. We recently discovered that the unaddressed positional error results in the model parameter estimates that are attenuated towards zero together with a poorer predictive performance [@altay2022accounting], [@altay2022covariates]. GeoAdjust package is constructed in order to provide fast computational tools that allow accounting/adjusting for positional uncertainty in the GPS coordinates of the observed data. The package makes use of the methods which have been developed through and discussed in detail in [@altay2022accounting] and [@altay2022covariates]. 
 
-## INTRODUCTION
+## Introduction
 DHS jittering algorithm is applied by first choosing a uniform random angle between 0 and $2\pi$ and then shifting the true location up to a certain maximum jittering distance towards the corresponding direction.  The maximum jittering distances are chosen depending on the strata that the cluster center is located within.The urban cluster centers are displaced up to 2 kilometers while the rural ones are jittered up to 5 kilometers, with %1 of them being jittered up to 10 kilometers [@DHSspatial07]. 
 
 DHS jitters the true locations by respecting the sub-national administrative unit borders, meaning that the jittered location is not allowed to end up in an administrative area that is different than the initial one. Jittering is repeated until this condition is satisfied. Administrative units are classified into different hierarchical levels starting from the national (or admin0) level. National level refers to the entire country which is seperated from its neighbours via the national or admin0 level borders. The classification follows hierarchically through smaller sub-national levels as counties, provinces, etc., which are also coded via the increasing set of numbers such as admin1, admin2, etc. 
 
 It is important to be aware that the jittering can be applied with respect to different levels of administrative areas in different countries. The information about this can be found in the corresponding README.txt (it is called "GPS_Displacement_README.txt" for the Nigeria 2018 survey, might be different elsewhere) file of the corresponding DHS data set. 
 
-### Data Structure and the Package Workflow
+
+## The Adjusted Model
+
+The methods included in GeoAdjust package utilize the auto-differentiation in Template Model Builder (TMB) R package [@JSSv070i05]. The approach involves creating a set of integration points within equidistant rings around each cluster center. Each cluster center is taken as the first integration point of the corresponding point set, and then depending on the urbanicity of the cluster, different number of rings are created together with their own sets of integration points. This approach considers the unknown true locations as the nuisance parameters in the model. Accordingly we use the C++ script of TMB to integrate them out by computing the contribution of each integration point to the joint negative log-likelihood.
+
+We call the true GPS coordinates of the centroids of each household cluster as the "true locations", whereas the published GPS coordinates of the cluster centers are referred as the "observed locations". Let $\boldsymbol{s}_1^*, \ldots, \boldsymbol{s}_C^* \in\mathcal{D}$ denote the true locations of the corresponding published DHS cluster centers $\boldsymbol{s}_1, \ldots, \boldsymbol{s}_C$. Adjusting for jittering within the binomial modelling framework yields the following observation model:
+\begin{align}
+\label{eqn:adjObsModelBinomial}
+\begin{split}
+y_c | r_c,n_c &\sim \text{Binomial}(n_c, r_c), \quad \boldsymbol{s}_c|\boldsymbol{s}_c^*\sim \pi_{\mathrm{Urb}[c]}(\boldsymbol{s}_c|\boldsymbol{s}_c^*),\\
+    r_c | \boldsymbol{s}_c^* &= r(\boldsymbol{s}_c^*) = \mathrm{logit}^{-1}( \eta(\boldsymbol{s}_c^*)),
+\end{split}
+\end{align}
+
+where $r_c$ denotes the risk of interest in cluster $c$, and $\mathrm{Urb}[c]\in\{\mathrm{U}, \mathrm{R}\}$ corresponds to the urban (U) or rural (R) stratum that cluster c is located within. In this observation model, both $y_c$ and $\boldsymbol{s}_c$ are already available through the DHS data set and accordingly, treated as the observed quantities. The unobserved true locations $s_c^*$ on the other hand, are inaccessible. They are treated as the random quantities and assigned a uniform prior $s_c^*\sim \mathcal{U}(\mathcal{D})$. This implies that we treat all locations $\boldsymbol{s}_c^*$ within the maximum jittering distance from $\boldsymbol{s}_c$ as equally likely \emph{a priori}, meaning that the true location can be located anywhere within the corresponding jittering radius with equal probability.
+
+If the interest is on modelling the Poisson counts, then the adjusted model becomes:
+
+\begin{align}
+\label{eqn:adjObsModelPoisson}
+\begin{split}
+y_c | \lambda_c &\sim \text{Poisson}(\lambda_c), \quad \boldsymbol{s}_c|\boldsymbol{s}_c^*\sim \pi_{\mathrm{Urb}[c]}(\boldsymbol{s}_c|\boldsymbol{s}_c^*),\\
+    log(\lambda_c) | \boldsymbol{s}_c^* &=  \eta(\boldsymbol{s}_c^*),
+\end{split}
+\end{align}
+where, $\lambda_c$ are the Poisson counts of interest.
+
+Similarly, the following represents the adjusted Gaussian model:
+\begin{align*}
+{\mathrm{y}_\mathrm{c} \mid \mathrm{\eta}_\mathrm{\boldsymbol{s}_c^*}, \sigma_\epsilon^2 \sim \mathcal{\mathrm{\mathcal{N}}}(\eta_\mathrm{\boldsymbol{s}_c^*}, \sigma_\epsilon^2}).
+\end{align*}
+
+\begin{align*}
+\mathrm{\eta}(\mathrm{\boldsymbol{s}_c^*})=\mu+\mathrm{X}(\mathrm{\boldsymbol{s}_c^*})^T\beta+\mathrm{u}(\mathrm{\boldsymbol{s}_c^*}).
+\end{align*}
+where $\sigma_\epsilon^2$ is the nugget variance, $\mu$ is the intercept, $X$ is the design matrix and $\beta$ is a vector of covariate effect sizes.
+
+In practice, estimating these different models using GeoAdjust R-package will involve passing the relevant model components as the arguments of the corresponding functions, which will be explained in more detail within the following sections.  
+
+## The SPDE Approach
+
+We model the latent spatial part $u(\cdot)$ of the observation model as a Gaussian Random Field with a Matérn covariance function. The stochastic partial differential equations (SPDE) approach [@Lindgren:etal:11] provides an approximation to the Matérn GRF that results in a sparse precision matrix. This is applied by first triangulating the area of interest through $m$ nodes and then approximating the GRF $u(\cdot)$ by:
+
+\begin{equation}
+\tilde{u}(\boldsymbol{s}) = \sum_{i=1}^m w_i \phi_i(s),\label{eq:SPDE:basis}
+\end{equation}
+where $\phi_i(\cdot)$ are pyramidal basis functions and  $\boldsymbol{w} = (w_1 \ \ldots \ w_m)^\mathrm{T}$
+are weights for the basis functions. The SPDE approach results in a distribution $\boldsymbol{w}\sim\mathcal{N}_m(\boldsymbol{0}, \mathbf{Q}(\boldsymbol{\theta})^{-1})$, where $\mathbf{Q}(\boldsymbol{\theta})$ is sparse.
+
+## Data Structure and the Package Workflow
 
 DHS data sets are not openly available to the public. Access to relevant DHS survey data sets requires applying for permission. One needs to briefly and clearly explain why the data is needed and how it will be processed and used, within a project summary framework. Sharing the data sets with the collaborating researchers requires permission as well. Step by step explanation about the application process can be found in DHS website (https://dhsprogram.com/data/new-user-registration.cfm). Once the permission is granted, the applicant receives a letter via email, which clearly states the content of the permission.
 
@@ -74,6 +123,45 @@ admin2 = readOGR(dsn = "dataFiles/gadm40_NGA_shp",
 
 admin2 = admin2[-160,] # removing the lake (contained in polygon 160)
 ```
+
+The admin2 level sub-national unit borders of Nigeria looks like this: 
+
+```{r eval=FALSE}
+library(rgdal)
+library(ggplot2)
+admin2 = readOGR(dsn = "dataFiles/gadm40_NGA_shp",
+                     layer = "gadm40_NGA_2")
+
+proj = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
+
+admin2@data[["OBJECTID"]] =1:775 # we now include the lake which is polygon number 160
+admin2_trnsfrmd = spTransform(admin2,proj)
+dfNigeria <- fortify(admin2_trnsfrmd, region = "NAME_2")
+
+ggplot() + 
+  geom_path(data = dfNigeria, aes(long,lat, group = group),colour = "black", inherit.aes = FALSE)+ theme_bw()+
+  xlab("Easting (km)") + 
+  ylab("Northing (km)")  +
+  theme(panel.grid.major.x = element_blank(),
+  panel.grid.minor.x = element_blank(),
+  panel.grid.major.y = element_blank(),
+  panel.grid.minor.y = element_blank()) +
+  coord_fixed() +
+  guides(fill = guide_colourbar(barwidth = 2.5, barheight = 25, title = labs(""), title.vjust=3) )+
+  theme(legend.title = element_text(color = "transparent"), legend.text = element_text(color = "transparent"))+    
+  scale_x_continuous(expand=c(0,0)) + scale_y_continuous(expand=c(0,0)) 
+
+```
+
+![admin2 level borders](/Users/umuta/GeoAdjust/vignettes/countryMap.png){ width=100% }
+
+
+
+
+
+
+
+
 
 Reading the DHS files:
 
@@ -213,88 +301,13 @@ head(nigeria.data)
 7         7  8.025037  7.104230  5 10             U -3095.475  915.2284
 ```
 
+## The Package Functionality
 
-## The Adjusted Model
+#### Triangulation - The SPDE Mesh
 
-The methods included in GeoAdjust package utilize the auto-differentiation in Template Model Builder (TMB) R package [@JSSv070i05]. The approach involves creating a set of integration points within equidistant rings around each cluster center. Each cluster center is taken as the first integration point of the corresponding point set, and then depending on the urbanicity of the cluster, different number of rings are created together with their own sets of integration points. This approach considers the unknown true locations as the nuisance parameters in the model. Accordingly we use the C++ script of TMB to integrate them out by computing the contribution of each integration point to the joint negative log-likelihood.
-
-We call the true GPS coordinates of the centroids of each household cluster as the "true locations", whereas the published GPS coordinates of the cluster centers are referred as the "observed locations". Let $\boldsymbol{s}_1^*, \ldots, \boldsymbol{s}_C^* \in\mathcal{D}$ denote the true locations of the corresponding published DHS cluster centers $\boldsymbol{s}_1, \ldots, \boldsymbol{s}_C$. Adjusting for jittering within the binomial modelling framework yields the following observation model:
-\begin{align}
-\label{eqn:adjObsModelBinomial}
-\begin{split}
-y_c | r_c,n_c &\sim \text{Binomial}(n_c, r_c), \quad \boldsymbol{s}_c|\boldsymbol{s}_c^*\sim \pi_{\mathrm{Urb}[c]}(\boldsymbol{s}_c|\boldsymbol{s}_c^*),\\
-    r_c | \boldsymbol{s}_c^* &= r(\boldsymbol{s}_c^*) = \mathrm{logit}^{-1}( \eta(\boldsymbol{s}_c^*)),
-\end{split}
-\end{align}
-
-where $r_c$ denotes the risk of interest in cluster $c$, and $\mathrm{Urb}[c]\in\{\mathrm{U}, \mathrm{R}\}$ corresponds to the urban (U) or rural (R) stratum that cluster c is located within. In this observation model, both $y_c$ and $\boldsymbol{s}_c$ are already available through the DHS data set and accordingly, treated as the observed quantities. The unobserved true locations $s_c^*$ on the other hand, are inaccessible. They are treated as the random quantities and assigned a uniform prior $s_c^*\sim \mathcal{U}(\mathcal{D})$. This implies that we treat all locations $\boldsymbol{s}_c^*$ within the maximum jittering distance from $\boldsymbol{s}_c$ as equally likely \emph{a priori}, meaning that the true location can be located anywhere within the corresponding jittering radius with equal probability.
-
-If the interest is on modelling the Poisson counts, then the adjusted model becomes:
-
-\begin{align}
-\label{eqn:adjObsModelPoisson}
-\begin{split}
-y_c | \lambda_c &\sim \text{Poisson}(\lambda_c), \quad \boldsymbol{s}_c|\boldsymbol{s}_c^*\sim \pi_{\mathrm{Urb}[c]}(\boldsymbol{s}_c|\boldsymbol{s}_c^*),\\
-    log(\lambda_c) | \boldsymbol{s}_c^* &=  \eta(\boldsymbol{s}_c^*),
-\end{split}
-\end{align}
-where, $\lambda_c$ are the Poisson counts of interest.
-
-Similarly, the following represents the adjusted Gaussian model:
-\begin{align*}
-{\mathrm{y}_\mathrm{c} \mid \mathrm{\eta}_\mathrm{\boldsymbol{s}_c^*}, \sigma_\epsilon^2 \sim \mathcal{\mathrm{\mathcal{N}}}(\eta_\mathrm{\boldsymbol{s}_c^*}, \sigma_\epsilon^2}).
-\end{align*}
-
-\begin{align*}
-\mathrm{\eta}(\mathrm{\boldsymbol{s}_c^*})=\mu+\mathrm{X}(\mathrm{\boldsymbol{s}_c^*})^T\beta+\mathrm{u}(\mathrm{\boldsymbol{s}_c^*}).
-\end{align*}
-where $\sigma_\epsilon^2$ is the nugget variance, $\mu$ is the intercept, $X$ is the design matrix and $\beta$ is a vector of covariate effect sizes.
-
-In practice, estimating these different models using GeoAdjust R-package will involve passing the relevant model components as the arguments of the corresponding functions, which will be explained in more detail within the following sections.  
-
-### The SPDE Approach
-
-We model the latent spatial part $u(\cdot)$ of the observation model as a Gaussian Random Field with a Matérn covariance function. The stochastic partial differential equations (SPDE) approach [@Lindgren:etal:11] provides an approximation to the Matérn GRF that results in a sparse precision matrix. This is applied by first triangulating the area of interest through $m$ nodes and then approximating the GRF $u(\cdot)$ by:
-
-\begin{equation}
-\tilde{u}(\boldsymbol{s}) = \sum_{i=1}^m w_i \phi_i(s),\label{eq:SPDE:basis}
-\end{equation}
-where $\phi_i(\cdot)$ are pyramidal basis functions and  $\boldsymbol{w} = (w_1 \ \ldots \ w_m)^\mathrm{T}$
-are weights for the basis functions. The SPDE approach results in a distribution $\boldsymbol{w}\sim\mathcal{N}_m(\boldsymbol{0}, \mathbf{Q}(\boldsymbol{\theta})^{-1})$, where $\mathbf{Q}(\boldsymbol{\theta})$ is sparse.
+We will construct the triangulation mesh based on the national (admin0) borders of the country of interest. It is possible to manipulate the mesh resolution by setting the arguments max.edge and offset accordingly. The argument `max.edge`  is a vector of two values, where its first and second elements represent the largest allowed triangle lengths for the inner and outer mesh, respectively. the argument `offset` stands for the extension distance.
 
 
-#### Triangulation - The Mesh
-
-We will construct the triangulation mesh based on the national (admin0) borders of the country of interest. It is possible to manipulate the mesh resolution by setting the arguments max.edge and offset accordingly. 
-
-```{r eval=FALSE}
-library(rgdal)
-library(ggplot2)
-admin2 = readOGR(dsn = "dataFiles/gadm40_NGA_shp",
-                     layer = "gadm40_NGA_2")
-
-proj = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
-
-admin2@data[["OBJECTID"]] =1:775 # we now include the lake which is polygon number 160
-admin2_trnsfrmd = spTransform(admin2,proj)
-dfNigeria <- fortify(admin2_trnsfrmd, region = "NAME_2")
-
-ggplot() + 
-  geom_path(data = dfNigeria, aes(long,lat, group = group),colour = "black", inherit.aes = FALSE)+ theme_bw()+
-  xlab("Easting (km)") + 
-  ylab("Northing (km)")  +
-  theme(panel.grid.major.x = element_blank(),
-  panel.grid.minor.x = element_blank(),
-  panel.grid.major.y = element_blank(),
-  panel.grid.minor.y = element_blank()) +
-  coord_fixed() +
-  guides(fill = guide_colourbar(barwidth = 2.5, barheight = 25, title = labs(""), title.vjust=3) )+
-  theme(legend.title = element_text(color = "transparent"), legend.text = element_text(color = "transparent"))+    
-  scale_x_continuous(expand=c(0,0)) + scale_y_continuous(expand=c(0,0)) 
-
-```
-
-![admin2 level borders](/Users/umuta/GeoAdjust/vignettes/countryMap.png){ width=100% }
 
 
 
