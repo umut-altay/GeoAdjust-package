@@ -25,11 +25,13 @@
 #' @return A list containing a list of data inputs for TMB, the corresponding
 #' mesh and the corresponding matrix of observation locations
 #' @examples
+#' \dontrun{
 #' inputData <- prepare_input(response = response, locObs = locObs,
-#' modelParams = modelParams, otherValues = otherValues, jScale = jScale,
+#' likelihood = likelihood, jScale = jScale,
 #' urban = urban, mesh.s = mesh.s, adminMap = adminMap,
 #' nSubAPerPoint = nSubAPerPoint, nSubRPerPoint = nSubRPerPoint,
-#' covariateData = covariateData, rangeMaternPri = rangeMaternPri)
+#' covariateData = covariateData)
+#' }
 #' @export
 #' @import INLA
 prepare_input = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,

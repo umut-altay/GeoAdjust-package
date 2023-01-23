@@ -9,7 +9,9 @@
 #' @return A list containing a matrix called "PredictedResponses", and another matrix called "eta.samples".  The matrix "PredictedResponses" contains the mean, median,
 #' standard deviation and the lower and the upper bounds of 95% credible intervals. The matrix "eta.samples" contains the sampled values
 #' @examples
-#' predRes(obj, predCoords, nCov, mesh, covariateData)
+#' \dontrun{
+#' predRes(obj = obj, predCoords = predCoords, nCov = nCov, mesh = mesh, covariateData = covariateData)
+#' }
 #' @export
 #' @import TMB
 #' @import SUMMER

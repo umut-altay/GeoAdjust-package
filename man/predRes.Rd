@@ -34,5 +34,7 @@ standard deviation and the lower and the upper bounds of 95% credible intervals.
 Predicts new outcomes for the response variable
 }
 \examples{
-predRes(obj, predCoords, nCov, mesh, covariateData)
+\dontrun{
+predRes(obj = obj, predCoords = predCoords, nCov = nCov, mesh = mesh, covariateData = covariateData)
+}
 }

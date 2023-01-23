@@ -20,5 +20,7 @@ A data frame containing the coordinates (in degrees and in kilometers) of a set 
 Creates a grid of locations within the national borders of a country of interest
 }
 \examples{
+\dontrun{
 grid <- gridCountry(admin0 = admin0, m = m, n = n)
+}
 }

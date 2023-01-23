@@ -59,9 +59,11 @@ Prepares input data list for the model estimation with "estimateMoodel
 function
 }
 \examples{
+\dontrun{
 inputData <- prepare_input(response = response, locObs = locObs,
-modelParams = modelParams, otherValues = otherValues, jScale = jScale,
+likelihood = likelihood, jScale = jScale,
 urban = urban, mesh.s = mesh.s, adminMap = adminMap,
 nSubAPerPoint = nSubAPerPoint, nSubRPerPoint = nSubRPerPoint,
-covariateData = covariateData, rangeMaternPri = rangeMaternPri)
+covariateData = covariateData)
+}
 }
