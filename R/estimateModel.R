@@ -35,7 +35,13 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   data[["beta_pri"]] = beta_pri
   data[["matern_pri"]] = matern_pri
 
-
+  if (data[["flag2"]] ==0){
+    likelihood = "Gaussian"
+  } else if (data[["flag2"]] ==1){
+    likelihood =  "binomial"
+  } else {
+    likelihood =  "Poisson"
+    }
 
 
   nCov = length(data[["X_betaUrban"]][1,]) # number of covariates in the model, including the intercept
@@ -53,18 +59,22 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
 
 
 
-  obj <- MakeADFun(data=data,
+  obj <- TMB::MakeADFun(data=data,
                    parameters=tmb_params,
                    random = rand_effs,
                    hessian=TRUE,
                    DLL='GeoAdjust')
 
+  flag1 = 1
   obj <- normalize(obj, flag="flag1", value = 0)
 
   opt0 = optim(par=obj$par, fn = obj$fn, gr = obj$gr,
-               method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1)), ...)
+               method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1)),...)
 
   par <- obj$env$last.par
+  Qtest = obj$env$spHess(par, random = TRUE)
+  #mu = c(par[1:nCov])
+  mu = par[names(par) != c("log_tau","log_kappa")]
 
   log_tau = par[[nCov+1]]
   log_kappa = par[[nCov+2]]
@@ -74,14 +84,47 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   sigma_estimate = 1.0 / sqrt(4.0 * 3.14159265359 *
                           exp(2.0 * log_tau) * exp(2.0 * log_kappa))
 
+  #Uncertainty (95% credible intervals)
+  # Simulate draws
+  rmvnorm_prec <- function(mu, chol_prec, n.sims) {
+    z <- matrix(rnorm(length(mu) * n.sims), ncol=n.sims)
+    L <- chol_prec #Cholesky(prec, super=TRUE)
+    z <- Matrix::solve(L, z, system = "Lt") ## z = Lt^-1 %*% z
+    z <- Matrix::solve(L, z, system = "Pt") ## z = Pt    %*% z
+    z <- as.matrix(z)
+    mu + z
+  }
+  prec = Qtest
+  L = Cholesky(prec, super = T)
+  t.draws <- rmvnorm_prec(mu = mu , chol_prec = L, n.sims = 10000)
+  parnames <- c(names(mu))
+
+  beta_draws<- t.draws[parnames == 'beta',]
+  intercept = beta_draws[1,]
+
   npar = nCov-1
   parNames = rep(0, npar)
   for(i in 1:npar){
   parNames[i] = paste0("beta", i)
+  assign(paste0("beta", i), beta_draws[i+1,])
+  }
+
+
+  CIlength = rep(0, npar+1)
+  CIlength[1] = quantile(intercept, probs = 0.975)- c(quantile(intercept, probs = 0.025))
+  for(i in (1:npar)){
+    b=paste0("beta", i)
+  CIlength[i+1] = (quantile(eval(parse(text = b)), probs = 0.975)- c(quantile(eval(parse(text = b)), probs = 0.025)))
   }
 
   res = data.frame(parameters = c("range", "sigma", "intercept", parNames),
-                    estimates = c(range_estimate, sigma_estimate, beta_estimate))
-  return(list(res=res, obj=obj))
+                    estimates = c(range_estimate, sigma_estimate, beta_estimate),
+                   CI_Length = c("", "", CIlength))
+
+
+  est = list(res=res, obj=obj,draws =t.draws, likelihood = likelihood)
+  class(est) = "res"
+
+  return(est)
 
 }

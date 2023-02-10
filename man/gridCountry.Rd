@@ -4,7 +4,7 @@
 \alias{gridCountry}
 \title{Creates a grid of locations within the national borders of a country of interest}
 \usage{
-gridCountry(admin0, m, n)
+gridCountry(admin0, res)
 }
 \arguments{
 \item{admin0}{A SpatialPolygonsDataFrame object representing the national (admin0) level borders of the country}

@@ -13,7 +13,7 @@
 #' }
 #' @export
 meshCountry = function(admin0,max.edge,offset){
-  mesh.s <- inla.mesh.2d(boundary = admin0,
+  mesh.s <- INLA::inla.mesh.2d(boundary = admin0,
                          offset=-.08,
                          cutoff=4,
                          max.edge = c(25, 50))

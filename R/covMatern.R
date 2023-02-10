@@ -14,7 +14,7 @@
 #' @export
 #' @import INLA
 covMatern = function(dMat, range, stdDev){
-  Sig = inla.matern.cov(nu = 1,
+  Sig = INLA::inla.matern.cov(nu = 1,
                         kappa = sqrt(8*1)/range,
                         x = dMat,
                         corr = TRUE)

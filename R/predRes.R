@@ -13,45 +13,52 @@
 #' predRes(obj = obj, predCoords = predCoords, nCov = nCov, mesh = mesh, covariateData = covariateData)
 #' }
 #' @export
-#' @import TMB
-#' @import SUMMER
-predRes = function(obj = obj, predCoords = predCoords, nCov = nCov, covariateData = covariateData, mesh.s = mesh.s, flag = flag){
+predRes = function(obj = obj, predCoords = predCoords, draws = draws, nCov = nCov, covariateData = covariateData, mesh.s = mesh.s, flag = flag){
 
+  t.draws = draws
+  predCoords = as.matrix(cbind(predCoords["east"], predCoords["north"]))
+  A.pred = inla.spde.make.A(mesh = mesh.s, loc = predCoords)
 
   par <- obj$env$last.par
-  Qtest = obj$env$spHess(par, random = TRUE)
+  mu = par[names(par) != c("log_tau","log_kappa")]
+  parnames <- c(names(mu))
+  epsilon_draws  <- t.draws[parnames == 'Epsilon_s',]
+  beta_draws<- t.draws[parnames == 'beta',]
+  # median = sd = quantile = NULL
+  # par <- obj$env$last.par
+  # Qtest = obj$env$spHess(par, random = TRUE)
+  #
+  # #Sampling
+  # mu <- c(par[-c(nCov+1,nCov+2)]) # nCov+1 refers to log_tau
+  #                                 # nCov+2 refers to log_kappa
+  # # Simulate draws
+  # rmvnorm_prec <- function(mu, chol_prec, n.sims) {
+  #   z <- matrix(rnorm(length(mu) * n.sims), ncol=n.sims)
+  #   L <- chol_prec #Cholesky(prec, super=TRUE)
+  #   z <- Matrix::solve(L, z, system = "Lt") ## z = Lt^-1 %*% z
+  #   z <- Matrix::solve(L, z, system = "Pt") ## z = Pt    %*% z
+  #   z <- as.matrix(z)
+  #   mu + z
+  #
+  # }
+    # prec = Qtest
+    # L = Matrix::Cholesky(prec, super = T)
 
-  #Sampling
-  mu <- c(par[-c(nCov+1,nCov+2)]) # nCov+1 refers to log_tau
-                                  # nCov+2 refers to log_kappa
-  # Simulate draws
-  rmvnorm_prec <- function(mu, chol_prec, n.sims) {
-    z <- matrix(rnorm(length(mu) * n.sims), ncol=n.sims)
-    L <- chol_prec #Cholesky(prec, super=TRUE)
-    z <- Matrix::solve(L, z, system = "Lt") ## z = Lt^-1 %*% z
-    z <- Matrix::solve(L, z, system = "Pt") ## z = Pt    %*% z
-    z <- as.matrix(z)
-    mu + z
-
-  }
-    prec = Qtest
-    L = Cholesky(prec, super = T)
-
-    A.pred = inla.spde.make.A(mesh = mesh.s, loc = as.matrix(predCoords))
+    # A.pred = INLA::inla.spde.make.A(mesh = mesh.s, loc = as.matrix(predCoords))
+    # #
+    # t.draws <- rmvnorm_prec(mu = mu , chol_prec = L, n.sims = 10000)
+    # parnames <- c(names(mu))
     #
-    t.draws <- rmvnorm_prec(mu = mu , chol_prec = L, n.sims = 10000)
-    parnames <- c(names(mu))
-
-    epsilon_draws  <- t.draws[parnames == 'Epsilon_s',]
-    beta_draws<- t.draws[parnames == 'beta',]
+    # epsilon_draws  <- t.draws[parnames == 'Epsilon_s',]
+    # beta_draws<- t.draws[parnames == 'beta',]
 
     predCoordsDegree = convertKMToDeg(predCoords)
-    predCoordsDegree = SpatialPoints(cbind(predCoordsDegree[,1], predCoordsDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
+    predCoordsDegree = sp::SpatialPoints(cbind(predCoordsDegree[,1], predCoordsDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
 
     # Extract the corresponding covariate values at prediction locations
     for (i in 1:length(covariateData)){
       #Extract covariate values from data rasters at predCoords
-      assign(paste0("covariatePred", i), raster::extract(covariateData[[i]], predCoordsDegree, ncol=2))
+      assign(paste0("covariatePred", i), raster::extract(covariateData[[1]], predCoordsDegree, ncol=2))
     }
 
     nLoc_pred = length(predCoords[,1])
@@ -84,7 +91,7 @@ predRes = function(obj = obj, predCoords = predCoords, nCov = nCov, covariateDat
                                 lower = (apply(eta.samples, 1, quantile, .025, na.rm = TRUE)),  #na.rm = TRUE is newly added
                                 upper = (apply(eta.samples, 1, quantile, .975, na.rm = TRUE)))
 
-    return(list(PredictedResponses = PredictedResponses, eta.samples = eta.samples))
+    return(PredictedResponses = PredictedResponses)
 
   }
 
