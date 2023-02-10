@@ -14,20 +14,19 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-Depends: R (>= 3.5), TMB, RcppEigen
+Depends: R (>= 3.5), TMB
 LinkingTo: TMB, RcppEigen
 License: GPL (>= 2)
 Imports: 
-    ggplot2,
-    viridis,
     raster,
     rgdal,
     sp,
     stats,
-    TMB,
     INLA,
     spatialEco,
     SUMMER,
     rgeos,
-    Matrix
+    Matrix,
+    fields,
+    geosphere
 Additional_repositories: https://inla.r-inla-download.org/R/stable/

@@ -26,8 +26,7 @@ values (ys) for the Gaussian response.}
 \item{locObs}{A matrix containing the coordinates of the already jittered
 survey cluster centers in kilometers}
 
-\item{likelihood}{A value indication which likelihood will be used. (1 for
-binomial and 0 for Gaussian)}
+\item{likelihood}{A value indication which likelihood will be used. (0, 1 or 2 for Gaussian, binomial or Poisson, respectively)}
 
 \item{jScale}{Jittering scale, where 1 represents the default DHS jittering
 scheme}

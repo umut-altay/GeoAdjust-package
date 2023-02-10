@@ -7,6 +7,7 @@
 predRes(
   obj = obj,
   predCoords = predCoords,
+  draws = draws,
   nCov = nCov,
   covariateData = covariateData,
   mesh.s = mesh.s,

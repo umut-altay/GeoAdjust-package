@@ -6,8 +6,7 @@
 #' values (ys) for the Gaussian response.
 #' @param locObs A matrix containing the coordinates of the already jittered
 #' survey cluster centers in kilometers
-#' @param likelihood A value indication which likelihood will be used. (1 for
-#' binomial and 0 for Gaussian)
+#' @param likelihood A value indication which likelihood will be used. (0, 1 or 2 for Gaussian, binomial or Poisson, respectively)
 #' @param jScale Jittering scale, where 1 represents the default DHS jittering
 #' scheme
 #' @param urban A vector containing the urbanization classification of the
@@ -62,7 +61,7 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
   #
   #jittering the points a bit just to make a mesh
   spde = getSPDEPrior(mesh.s, U=USpatial, alpha=alphaSpatial)
-  A.proj = inla.spde.make.A(mesh = mesh.s, loc = cbind(locObs[,1], locObs[,2]))
+  A.proj = INLA::inla.spde.make.A(mesh = mesh.s, loc = cbind(locObs[,1], locObs[,2]))
   #
   # TMB input for the model that accounts for jittering
 
@@ -118,8 +117,8 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
   # coordsUrbanDegree = cbind(coordsUrbanDegree[,1], coordsUrbanDegree[,2])
   # coordsRuralDegree = cbind(coordsRuralDegree[,1], coordsRuralDegree[,2])
   # Convert them into SpatialPoints
-  coordsUrbanDegree = SpatialPoints(cbind(coordsUrbanDegree[,1], coordsUrbanDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
-  coordsRuralDegree = SpatialPoints(cbind(coordsRuralDegree[,1], coordsRuralDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
+  coordsUrbanDegree = sp::SpatialPoints(cbind(coordsUrbanDegree[,1], coordsUrbanDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
+  coordsRuralDegree = sp::SpatialPoints(cbind(coordsRuralDegree[,1], coordsRuralDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
 
   # Extract the corresponding covariate values seperately for urban/rural
   for (i in 1:length(covariateData)){

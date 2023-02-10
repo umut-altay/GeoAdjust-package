@@ -2,6 +2,6 @@
 
 #Argument: length: Number of observations.
 randomAngle<- function(length){
-  angle<- (runif(length, min = 0, max = 2*pi))
+  angle<- (stats::runif(length, min = 0, max = 2*pi))
   return(angle)
 }
