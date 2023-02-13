@@ -24,8 +24,8 @@ Imports:
     stats,
     INLA,
     spatialEco,
-    SUMMER,
     rgeos,
+    SUMMER,
     Matrix,
     fields,
     geosphere

@@ -2,25 +2,24 @@
 % Please edit documentation in R/gridCountry.R
 \name{gridCountry}
 \alias{gridCountry}
-\title{Creates a grid of locations within the national borders of a country of interest}
+\title{Creates a grid of locations within the bounding box of the national borders of a country of interest.}
 \usage{
 gridCountry(admin0, res)
 }
 \arguments{
 \item{admin0}{A SpatialPolygonsDataFrame object representing the national (admin0) level borders of the country}
 
-\item{m}{A value representing the number of points that the longitude range of the country will be divided by}
-
-\item{n}{A value representing the number of points that the latitude range of the country will be divided by}
+\item{res}{An integer representing the resolution in kilometers.}
 }
 \value{
-A data frame containing the coordinates (in degrees and in kilometers) of a set of prediction points on a grid
+A list. The first element of the list, "predRast", is the prediction raster. The second element of the list, "loc.pred", is a data frame containing the grid of coordinates of the cell centers (both in degrees and in kilometers) of the prediction raster.
 }
 \description{
-Creates a grid of locations within the national borders of a country of interest
+Creates a grid of locations within the bounding box of the national borders of a country of interest.
 }
 \examples{
 \dontrun{
-grid <- gridCountry(admin0 = admin0, m = m, n = n)
+res is resolution in kilometers. Example : res = 5 means that the raster cells are created as 5 km by 5 km squares.
+grid <- gridCountry(admin0 = admin0, res = res)
 }
 }

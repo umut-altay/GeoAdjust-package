@@ -29,7 +29,7 @@
 #' scale = 1
 #' urbanRural = clusterData$urbanRural
 #' # here we use admin2 borders. It can be different for different countries:
-#' admin2 = readOGR(dsn = "dataFiles/gadm40_NGA_shp",
+#' admin2 = rgdal::readOGR(dsn = "dataFiles/gadm40_NGA_shp",
 #' layer = "gadm40_NGA_2")
 #' #remove the lake (Water body) :
 #' admin2 = admin2[-160,]
@@ -37,8 +37,8 @@
 #' admin2@data[["OBJECTID"]] =1:774
 #' loc = cbind(clusterData$long, clusterData$lat)
 #' colnames(loc) = c("long", "lat")
-#  loc = SpatialPoints(loc, proj4string=CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
-#' check1 <- over(loc, admin2, returnList = FALSE)
+#  loc = sp::SpatialPoints(loc, proj4string=CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
+#' check1 <- sp::over(loc, admin2, returnList = FALSE)
 #' locJittered <- displace(scale = scale, locKM = locKM,
 #' urbanRural = urbanRural, AdminShapeFile = Admin2ShapeFile, check1 = check1,
 #' boundary = TRUE)
@@ -60,7 +60,7 @@ displace = function(scale, locKM, urbanRural, AdminShapeFile, check1, boundary){
         if (boundary == "TRUE"){
           newPoint_spatialPointsObject = sp::SpatialPoints(cbind(newPoint_eastNorth[,1], newPoint_eastNorth[,2]), proj4string = CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"), bbox = NULL)
           newPoint_longLat <- sp::spTransform(newPoint_spatialPointsObject, Admin2ShapeFile@proj4string)
-          check2 <- rgeos::over(newPoint_longLat, Admin2ShapeFile, returnList = FALSE)
+          check2 <- sp::over(newPoint_longLat, Admin2ShapeFile, returnList = FALSE)
           if ((is.na(check2[,"NAME_2"][[1]]) == FALSE) & (check2[,"NAME_2"][[1]] == check1[,"NAME_2"][[i]])){
             break
           }else{next}
