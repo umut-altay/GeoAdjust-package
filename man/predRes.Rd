@@ -15,9 +15,11 @@ predRes(
 )
 }
 \arguments{
-\item{obj}{The output object created by the "estimateModel" function that contains the TMB components for predictions}
+\item{obj}{The optimized core model object returned by estimateModel() function.}
 
 \item{predCoords}{A matrix containing the coordinates of the prediction locations in UTM zone:37}
+
+\item{draws}{A matrix containing 10.000 sampled values for each covariate effect size and 10.000 sampled values of random effect coefficients for each mesh node.}
 
 \item{nCov}{Number of covariates (including the intercept)}
 

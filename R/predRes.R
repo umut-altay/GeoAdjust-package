@@ -3,7 +3,8 @@
 #' @param nCov Number of covariates (including the intercept)
 #' @param mesh.s A mesh created based on the country borders
 #' @param covariateData A list containing the covariate rasters
-#' @param obj The output object created by the "estimateModel" function that contains the TMB components for predictions
+#' @param obj The optimized core model object returned by estimateModel() function.
+#' @param draws A matrix containing 10.000 sampled values for each covariate effect size and 10.000 sampled values of random effect coefficients for each mesh node.
 #' @param predCoords A matrix containing the coordinates of the prediction locations in UTM zone:37
 #' @param flag A value indicating the type of the likelihood that will be used. Pass 0 for Gaussian, 1 for binomial and 2 for Poisson likelihoods.
 #' @return A list containing a matrix called "PredictedResponses", and another matrix called "eta.samples".  The matrix "PredictedResponses" contains the mean, median,
@@ -77,7 +78,7 @@ predRes = function(obj = obj, predCoords = predCoords, draws = draws, nCov = nCo
 
     if (flag == 1){
       #   # Convert to probability scale
-      eta.samples = expit(eta.samples)
+      eta.samples = SUMMER::expit(eta.samples)
     } else if (flag ==2){
       eta.samples = exp(eta.samples)
     } else{

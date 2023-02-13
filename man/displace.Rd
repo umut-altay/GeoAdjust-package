@@ -47,7 +47,7 @@ locKM = cbind(clusterData$east, clusterData$north)
 scale = 1
 urbanRural = clusterData$urbanRural
 # here we use admin2 borders. It can be different for different countries:
-admin2 = readOGR(dsn = "dataFiles/gadm40_NGA_shp",
+admin2 = rgdal::readOGR(dsn = "dataFiles/gadm40_NGA_shp",
 layer = "gadm40_NGA_2")
 #remove the lake (Water body) :
 admin2 = admin2[-160,]
@@ -55,7 +55,7 @@ admin2 = admin2[-160,]
 admin2@data[["OBJECTID"]] =1:774
 loc = cbind(clusterData$long, clusterData$lat)
 colnames(loc) = c("long", "lat")
-check1 <- over(loc, admin2, returnList = FALSE)
+check1 <- sp::over(loc, admin2, returnList = FALSE)
 locJittered <- displace(scale = scale, locKM = locKM,
 urbanRural = urbanRural, AdminShapeFile = Admin2ShapeFile, check1 = check1,
 boundary = TRUE)

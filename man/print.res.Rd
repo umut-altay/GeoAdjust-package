@@ -4,10 +4,12 @@
 \alias{print.res}
 \title{Prints the output of estimateModel() function.}
 \usage{
-\method{print}{res}(est)
+print.res(x, ...)
 }
 \arguments{
-\item{est}{Distance matrix.}
+\item{x}{A list containing the model estimation output, returned by estimateModel function.}
+
+\item{...}{other}
 }
 \value{
 Prints the model parameter estimates and the corresponding credible interval lengths.

@@ -261,7 +261,7 @@ makeAllIntegrationPoints = function(coords, urbanVals,
     # determine what admin area each point is in
     coordsLonLat = convertKMToDeg(coords)
     spCoordsLonLat = SpatialPoints(coordsLonLat, adminMap@proj4string)
-    temp = over(spCoordsLonLat, adminMap, returnList=FALSE)
+    temp = sp::over(spCoordsLonLat, adminMap, returnList=FALSE)
     adminID = temp$OBJECTID
 
     # calculate distances to admin boundaries
@@ -383,7 +383,7 @@ getSubIntegrationPoints = function(integrationPoints, centerCoords=cbind(0, 0),
     }
     theseRs = rsIntegrationPoints
 
-    thesePointsRadial = make.surface.grid(list(rs=theseRs, as=theseAs))
+    thesePointsRadial = fields::make.surface.grid(list(rs=theseRs, as=theseAs))
 
     # convert to Euclidean coordinates
     thesePointsEuclidean = cbind(thesePointsRadial[,1]*cos(thesePointsRadial[,2]),
