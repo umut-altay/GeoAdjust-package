@@ -7,12 +7,12 @@
 gridCountry(admin0 = NULL, res = NULL)
 }
 \arguments{
-\item{admin0}{A SpatialPolygonsDataFrame object representing the national (admin0) level borders of the country}
+\item{admin0}{A SpatialPolygonsDataFrame object representing the national (admin0) level borders of the country.}
 
-\item{res}{An integer representing the resolution in kilometers.}
+\item{res}{A value representing the resolution in kilometers.}
 }
 \value{
-A list. The first element of the list, "predRast", is the prediction raster. The second element of the list, "loc.pred", is a data frame containing the grid of coordinates of the cell centers (both in degrees and in kilometers) of the prediction raster.
+A list. The first element of the list, predRast, is the prediction raster. The second element of the list, loc.pred, is a data frame containing the grid of coordinates of the cell centers (both in degrees and in kilometers) of the prediction raster.
 }
 \description{
 Creates a grid of locations within the bounding box of the national borders of a country of interest.

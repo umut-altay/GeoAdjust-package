@@ -1,8 +1,8 @@
 #' Creates a Matern covariance matrix.
 #'
-#' @param dMat Distance matrix.
+#' @param dMat A distance matrix between the locations.
 #' @param range Spatial range in kilometers.
-#' @param stdDev Marginal variance.
+#' @param stdDev The marginal variance.
 #' @return Matern covariance matrix.
 #' @examples
 #' data("clusterData")

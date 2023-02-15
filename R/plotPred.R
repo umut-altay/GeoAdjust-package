@@ -6,7 +6,7 @@
 #' @param admin0 A SpatialPolygonsDataFrame representing the national level (admin0) borders of the country.
 #' @param admin1 A SpatialPolygonsDataFrame representing the first level (admin1) subnational borders of the country.
 #' @param admin2 A SpatialPolygonsDataFrame representing the second level (admin2) subnational borders of the country.
-#' @param rmPoly A number referring to the admin2 level polygon that needs to be removed.
+#' @param rmPoly A number referring to the ID number of the admin2 level polygon that needs to be left uncolored.
 #' @param locObs A data frame containing the coordinates of the observation points (DHS locations) in kilometers.
 #' @param dir The directory that the plots needs to be saved into.
 #' @examples
@@ -25,7 +25,7 @@ plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL
 
   idx = 1:raster::ncell(predRaster)
   predCoords = raster::xyFromCell(predRast, idx)
-  predCoords = sp::SpatialPoints(predCoords, proj4string=CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"))
+  predCoords = sp::SpatialPoints(predCoords, proj4string=sp::CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"))
 
   uncertainty = (pred[,3]/pred[,1])*100
   uncertainty = raster::setValues(predRast, values = uncertainty, index=idx)

@@ -8,7 +8,6 @@
 #' locMoll <- convertDegToMollweide(loc = loc)
 #' head(locMoll)
 #' @export
-#' @import sp
 convertDegToMollweide = function(loc){
   locLatLon = sp::SpatialPoints(loc,
                             proj4string = sp::CRS("+proj=longlat +datum=WGS84"))

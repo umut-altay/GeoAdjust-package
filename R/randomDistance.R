@@ -1,6 +1,6 @@
-# Generate random distances with respect to the selected jittering scale
-# type : a vector of location types : U for urban, R for rural
-# s = scaling factor (1, 3 ,5, 10)
+# Generate random distances with respect to the selected jittering scale.
+# type : a vector of location types : U for urban, R for rural.
+# s = scaling factor (1, 3 ,5, 10).
 randomDistance<- function(type = NULL, s = NULL){
   distance<- rep(0, length(type))
   for (i in 1:length(type)){

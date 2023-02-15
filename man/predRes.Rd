@@ -2,7 +2,7 @@
 % Please edit documentation in R/predRes.R
 \name{predRes}
 \alias{predRes}
-\title{Predicts new outcomes for the response variable}
+\title{Predicts model outcomes at new locations.}
 \usage{
 predRes(
   obj = NULL,
@@ -17,24 +17,23 @@ predRes(
 \arguments{
 \item{obj}{The optimized core model object returned by estimateModel() function.}
 
-\item{predCoords}{A matrix containing the coordinates of the prediction locations in UTM zone:37}
+\item{predCoords}{A matrix containing the coordinates of the prediction locations in kilometers (UTM zone:37).}
 
 \item{draws}{A matrix containing 10.000 sampled values for each covariate effect size and 10.000 sampled values of random effect coefficients for each mesh node.}
 
-\item{nCov}{Number of covariates (including the intercept)}
+\item{nCov}{A value showing the number of covariates (including the intercept).}
 
-\item{covariateData}{A list containing the covariate rasters}
+\item{covariateData}{A list containing the covariate rasters.}
 
-\item{mesh.s}{A mesh created based on the country borders}
+\item{mesh.s}{A mesh created based on the country borders.}
 
 \item{flag}{A value indicating the type of the likelihood that will be used. Pass 0 for Gaussian, 1 for binomial and 2 for Poisson likelihoods.}
 }
 \value{
-A list containing a matrix called "PredictedResponses", and another matrix called "eta.samples".  The matrix "PredictedResponses" contains the mean, median,
-standard deviation and the lower and the upper bounds of 95% credible intervals. The matrix "eta.samples" contains the sampled values
+A matrix containing the mean, median,standard deviation and the lower and the upper bounds of 95% credible intervals of the predictions.
 }
 \description{
-Predicts new outcomes for the response variable
+Predicts model outcomes at new locations.
 }
 \examples{
 \dontrun{

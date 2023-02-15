@@ -21,7 +21,6 @@ Imports:
     sp,
     stats,
     INLA,
-    spatialEco,
     rgeos,
     SUMMER,
     Matrix,
