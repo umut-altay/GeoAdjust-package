@@ -13,7 +13,7 @@ convertDegToKM(
 \arguments{
 \item{loc}{A two column matrix of coordinates (The first column is longitude and the second column is latitude).}
 
-\item{crs}{The corresponding coordinate reference system}
+\item{crs}{The coordinate reference system.}
 }
 \value{
 A two column matrix of The Universal Transverse Mercator (UTM) zone:37 coordinate system (https://www.usgs.gov/faqs/what-does-term-utm-mean-utm-better-or-more-accurate-latitudelongitude).

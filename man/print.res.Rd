@@ -7,9 +7,10 @@
 \method{print}{res}(x, ...)
 }
 \arguments{
-\item{x}{A list containing the model estimation output, returned by estimateModel function.}
+\item{x}{A list containing the model estimation output, returned by
+estimateModel() function.}
 
-\item{...}{ignored}
+\item{...}{ignored.}
 }
 \description{
 Prints the output of estimateModel() function.

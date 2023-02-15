@@ -27,7 +27,7 @@ plotPred(
 
 \item{admin2}{A SpatialPolygonsDataFrame representing the second level (admin2) subnational borders of the country.}
 
-\item{rmPoly}{A number referring to the admin2 level polygon that needs to be removed.}
+\item{rmPoly}{A number referring to the ID number of the admin2 level polygon that needs to be left uncolored.}
 
 \item{locObs}{A data frame containing the coordinates of the observation points (DHS locations) in kilometers.}
 

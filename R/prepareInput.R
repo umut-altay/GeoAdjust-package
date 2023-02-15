@@ -1,28 +1,29 @@
-#' Prepares input data list for the model estimation with "estimateMoodel
-#' function
+#' Prepares input data list for the model estimation with estimateModel()
+#' function.
 #'
 #' @param response A list containing the number of trials (ns) and number of
-#' successes (ys) for the binomial response, or a list containing the response
-#' values (ys) for the Gaussian response.
-#' @param locObs A matrix containing the coordinates of the already jittered
-#' survey cluster centers in kilometers
-#' @param likelihood A value indication which likelihood will be used. (0, 1 or 2 for Gaussian, binomial or Poisson, respectively)
+#' successes (ys) for the binomial response, response
+#' values (ys) for the Gaussian response or the Poisson counts for the Poisson
+#' response.
+#' @param locObs A matrix containing the coordinates DHS
+#' survey cluster centers in kilometers.
+#' @param likelihood A value indicating which likelihood should be used
+#' (0, 1 or 2 for Gaussian, binomial or Poisson, respectively).
 #' @param jScale Jittering scale, where 1 represents the default DHS jittering
-#' scheme
+#' scheme.
 #' @param urban A vector containing the urbanization classification of the
-#' administrative area that each cluster center is initially located within.
-#' (U for urban and R for rural)
-#' @param mesh.s A mesh created based on the country borders
-#' @param adminMap A shape file containing the borders of the administrative
-#' area level, which was respected while the cluster centers were initially
-#' being jittered. (can be obtained from https://gadm.org)
+#' administrative area that each cluster center is initially located within
+#' (U for urban and R for rural).
+#' @param mesh.s A mesh created based on the country borders.
+#' @param adminMap A SpatialPolygonsDataFrame object containing the borders of
+#' the administrative area level, which was respected while the cluster centers
+#' were initially being jittered (can be obtained from https://gadm.org).
 #' @param nSubAPerPoint A value representing the number of unique
-#' sub-integration point angles per integration point
+#' sub-integration point angles per integration point.
 #' @param nSubRPerPoint A value representing the number of unique
-#' sub-integration point radii per integration point
-#' @param covariateData A list containing the covariate rasters
-#' @return A list containing a list of data inputs for TMB, the corresponding
-#' mesh and the corresponding matrix of observation locations
+#' sub-integration point radii per integration point.
+#' @param covariateData A list containing the covariate rasters.
+#' @return A list containing the input for estimateModel() function.
 #' @examples
 #' \dontrun{
 #' inputData <- prepareInput(response = response, locObs = locObs,
@@ -117,8 +118,8 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
   # coordsUrbanDegree = cbind(coordsUrbanDegree[,1], coordsUrbanDegree[,2])
   # coordsRuralDegree = cbind(coordsRuralDegree[,1], coordsRuralDegree[,2])
   # Convert them into SpatialPoints
-  coordsUrbanDegree = sp::SpatialPoints(cbind(coordsUrbanDegree[,1], coordsUrbanDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
-  coordsRuralDegree = sp::SpatialPoints(cbind(coordsRuralDegree[,1], coordsRuralDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
+  coordsUrbanDegree = sp::SpatialPoints(cbind(coordsUrbanDegree[,1], coordsUrbanDegree[,2]), proj4string = sp::CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
+  coordsRuralDegree = sp::SpatialPoints(cbind(coordsRuralDegree[,1], coordsRuralDegree[,2]), proj4string = sp::CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
 
   # Extract the corresponding covariate values seperately for urban/rural
   for (i in 1:length(covariateData)){

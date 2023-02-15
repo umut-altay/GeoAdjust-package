@@ -3,7 +3,7 @@
 #' @param admin0 A SpatialPolygonsDataFrame representing the country borders.
 #' @param max.edge A vector of two values. The first and the second elements of
 #' the vector represent the largest allowed triangle lengths for the inner and outer mesh, respectively.
-#' @param offset offset value representing the extension distance for the inla.mesh.2d object
+#' @param offset A value representing the extension distance for the inla.mesh.2d object
 #' @return A constrained refined Delaunay triangulation mesh created based on the country borders.
 #' @export
 #' @import INLA

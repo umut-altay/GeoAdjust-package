@@ -486,7 +486,7 @@ updateWeightsByAdminArea = function(coords,
     thisSubPts = thisSubOut$subPts
     thisSubPts = lapply(thisSubPts, function(x) {sweep(x, 2, c(theseCoords), "+")})
     thisSubPtsSP = lapply(thisSubPts, function(x) {
-      sp::SpatialPoints(x, proj4string=CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"))
+      sp::SpatialPoints(x, proj4string=sp::CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"))
     })
 
     # project subPts to correct projection

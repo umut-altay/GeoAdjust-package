@@ -1,7 +1,8 @@
 #' Prints the output of estimateModel() function.
 #'
-#' @param x A list containing the model estimation output, returned by estimateModel function.
-#' @param ... ignored
+#' @param x A list containing the model estimation output, returned by
+#' estimateModel() function.
+#' @param ... ignored.
 #' @export
 print.res <- function(x, ...){
   p1 = lengths(x[["res"]]) # number of rows

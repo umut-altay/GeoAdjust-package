@@ -1,14 +1,13 @@
-#' Predicts new outcomes for the response variable
+#' Predicts model outcomes at new locations.
 #'
-#' @param nCov Number of covariates (including the intercept)
-#' @param mesh.s A mesh created based on the country borders
-#' @param covariateData A list containing the covariate rasters
+#' @param nCov A value showing the number of covariates (including the intercept).
+#' @param mesh.s A mesh created based on the country borders.
+#' @param covariateData A list containing the covariate rasters.
 #' @param obj The optimized core model object returned by estimateModel() function.
 #' @param draws A matrix containing 10.000 sampled values for each covariate effect size and 10.000 sampled values of random effect coefficients for each mesh node.
-#' @param predCoords A matrix containing the coordinates of the prediction locations in UTM zone:37
+#' @param predCoords A matrix containing the coordinates of the prediction locations in kilometers (UTM zone:37).
 #' @param flag A value indicating the type of the likelihood that will be used. Pass 0 for Gaussian, 1 for binomial and 2 for Poisson likelihoods.
-#' @return A list containing a matrix called "PredictedResponses", and another matrix called "eta.samples".  The matrix "PredictedResponses" contains the mean, median,
-#' standard deviation and the lower and the upper bounds of 95% credible intervals. The matrix "eta.samples" contains the sampled values
+#' @return A matrix containing the mean, median,standard deviation and the lower and the upper bounds of 95% credible intervals of the predictions.
 #' @examples
 #' \dontrun{
 #' predRes(obj = obj, predCoords = predCoords, nCov = nCov, mesh = mesh, covariateData = covariateData)
@@ -28,7 +27,7 @@ predRes = function(obj = NULL, predCoords  = NULL, draws  = NULL, nCov  = NULL, 
   beta_draws<- t.draws[parnames == 'beta',]
 
     predCoordsDegree = convertKMToDeg(predCoords)
-    predCoordsDegree = sp::SpatialPoints(cbind(predCoordsDegree[,1], predCoordsDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
+    predCoordsDegree = sp::SpatialPoints(cbind(predCoordsDegree[,1], predCoordsDegree[,2]), proj4string = sp::CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
 
     # Extract the corresponding covariate values at prediction locations
     for (i in 1:length(covariateData)){

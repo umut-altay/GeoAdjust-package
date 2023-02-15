@@ -7,11 +7,11 @@
 covMatern(dMat = NULL, range = NULL, stdDev = NULL)
 }
 \arguments{
-\item{dMat}{Distance matrix.}
+\item{dMat}{A distance matrix between the locations.}
 
 \item{range}{Spatial range in kilometers.}
 
-\item{stdDev}{Marginal variance.}
+\item{stdDev}{The marginal variance.}
 }
 \value{
 Matern covariance matrix.
