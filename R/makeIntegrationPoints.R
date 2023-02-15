@@ -15,6 +15,7 @@
 #                       center of mass within the integration area
 #                       or the midpoint of the radius and angle
 # verbose: whether to run the function in verbose mode
+#' @importFrom stats aggregate
 getIntegrationPoints = function(urban=TRUE, numPoints=ifelse(urban, 11, 16),
                                 scalingFactor,
                                 JInner=3, JOuter=ifelse(urban, 0, 1),
@@ -260,14 +261,14 @@ makeAllIntegrationPoints = function(coords, urbanVals,
 
     # determine what admin area each point is in
     coordsLonLat = convertKMToDeg(coords)
-    spCoordsLonLat = SpatialPoints(coordsLonLat, adminMap@proj4string)
+    spCoordsLonLat = sp::SpatialPoints(coordsLonLat, adminMap@proj4string)
     temp = sp::over(spCoordsLonLat, adminMap, returnList=FALSE)
     adminID = temp$OBJECTID
 
     # calculate distances to admin boundaries
-    adminMapPolygons = as.SpatialPolygons.PolygonsList(adminMap@polygons, adminMap@proj4string)
-    require(geosphere)
-    dists = sapply(1:nrow(coords), function(ind) {dist2Line(spCoordsLonLat[ind], adminMapPolygons[adminID[ind]])[1]}) * (1/1000)
+    adminMapPolygons = sp::as.SpatialPolygons.PolygonsList(adminMap@polygons, adminMap@proj4string)
+    #require(geosphere)
+    dists = sapply(1:nrow(coords), function(ind) {geosphere::dist2Line(spCoordsLonLat[ind], adminMapPolygons[adminID[ind]])[1]}) * (1/1000)
 
     # set whether or not to update weights based on distance to admin boundaries
     updateI = dists < maxDist
@@ -277,7 +278,7 @@ makeAllIntegrationPoints = function(coords, urbanVals,
     # calculate updated weights for the integration points near the borders
     tempCoords = coords[updateI,]
     tempUrbanVals = urbanVals[updateI]
-    require(fields)
+    #require(fields)
 
     if(testMode) {
       # in this case, we take only one set of coords that is very close to border,
@@ -440,7 +441,7 @@ updateWeightsByAdminArea = function(coords,
                                     nSubAPerPoint=10, nSubRPerPoint=10,
                                     testMode=FALSE) {
 
-  adminMapPoly = as.SpatialPolygons.PolygonsList(adminMap@polygons, adminMap@proj4string)
+  adminMapPoly = sp::as.SpatialPolygons.PolygonsList(adminMap@polygons, adminMap@proj4string)
 
   # calculate set of typical sub-integration points for urban and rural clusters
   subIntegrationPointsUrban = getSubIntegrationPoints(integrationPoints=integrationPointsUrban,
@@ -453,8 +454,8 @@ updateWeightsByAdminArea = function(coords,
 
   # get admin areas associated with coordinates
   coordsLonLat = convertKMToDeg(coords)
-  spCooordsLonLat = SpatialPoints(coordsLonLat, proj4string=adminMap@proj4string, bbox = NULL)
-  out = over(spCooordsLonLat, adminMap, returnList = FALSE)
+  spCooordsLonLat = sp::SpatialPoints(coordsLonLat, proj4string=adminMap@proj4string, bbox = NULL)
+  out = sp::over(spCooordsLonLat, adminMap, returnList = FALSE)
   adminNames = out$NAME_1
   adminIDs = out$OBJECTID
 
@@ -485,18 +486,18 @@ updateWeightsByAdminArea = function(coords,
     thisSubPts = thisSubOut$subPts
     thisSubPts = lapply(thisSubPts, function(x) {sweep(x, 2, c(theseCoords), "+")})
     thisSubPtsSP = lapply(thisSubPts, function(x) {
-      SpatialPoints(x, proj4string=CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"))
+      sp::SpatialPoints(x, proj4string=CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"))
     })
 
     # project subPts to correct projection
-    thisSubPtsSPLonLat = lapply(thisSubPtsSP, function(x) {spTransform(x, adminMap@proj4string)})
+    thisSubPtsSPLonLat = lapply(thisSubPtsSP, function(x) {sp::spTransform(x, adminMap@proj4string)})
 
     # determine if each sub-integration point is in correct admin area
     # the following code is commented out because it takes far too long
     # browser()
     # subAreas = lapply(thisSubPtsSPLonLat, function(x) {over(x, adminMap, returnList=FALSE)$NAME_1})
     # goodAreas = lapply(subAreas, function(x) {x == thisArea})
-    goodAreas <- lapply(thisSubPtsSPLonLat, function(x) {!is.na(over(x, thisPoly, returnList=FALSE))})
+    goodAreas <- lapply(thisSubPtsSPLonLat, function(x) {!is.na(sp::over(x, thisPoly, returnList=FALSE))})
     # require(fields)
     # system.time(goodAreas2 <- lapply(thisSubPtsSPLonLat, function(x) {in.poly(attr(x, "coords"), attr(thisPoly@polygons[[1]]@Polygons[[1]], "coords"))}))
     # require(ptinpoly)
@@ -587,9 +588,9 @@ makeJitterDataForTMB = function(integrationPointInfo, ys, urbanicity, ns, spdeMe
   #                  urban = c(rep(TRUE, length(xUrban)), rep(FALSE, length(xRural))))
 
   # construct `A' matrices
-  AUrban = inla.spde.make.A(mesh = spdeMesh,
+  AUrban = INLA::inla.spde.make.A(mesh = spdeMesh,
                             loc = coordsUrban)
-  ARural = inla.spde.make.A(mesh = spdeMesh,
+  ARural = INLA::inla.spde.make.A(mesh = spdeMesh,
                             loc = coordsRural)
 
   list(ysUrban=ysUrban, ysRural=ysRural,

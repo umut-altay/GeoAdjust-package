@@ -11,8 +11,8 @@
 #' @import sp
 convertDegToMollweide = function(loc){
   locLatLon = sp::SpatialPoints(loc,
-                            proj4string = CRS("+proj=longlat +datum=WGS84"))
+                            proj4string = sp::CRS("+proj=longlat +datum=WGS84"))
   locMollweide = sp::spTransform(locLatLon,
-                             CRS("+proj=moll +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"))
+                                 sp::CRS("+proj=moll +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"))
   return(locMollweide@coords[,c(1,2)])
 }

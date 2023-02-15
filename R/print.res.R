@@ -1,15 +1,9 @@
 #' Prints the output of estimateModel() function.
 #'
 #' @param x A list containing the model estimation output, returned by estimateModel function.
-#' @param ... other
-#' @return Prints the model parameter estimates and the corresponding credible interval lengths.
-#' @examples
-#' \dontrun{
-#' print.res(est = est)
-#' }
+#' @param ... ignored
 #' @export
 print.res <- function(x, ...){
-  UseMethod("res", x)
   p1 = lengths(x[["res"]]) # number of rows
   likelihood = x[["likelihood"]]
   cat("GeoAdjust::estimateModel()", "\n")

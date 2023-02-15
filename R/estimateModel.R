@@ -14,10 +14,11 @@
 #' with the model (if wanted).
 #' @examples
 #' \dontrun{
-#' results <- estimateModel(data = data, nNodes = nNodes, options = list(random = 1, covariates = 1), priors = list(beta = c(0,1), range = 114))
+#' results <- estimateModel(data = data, nNodes = nNodes,
+#' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
+#' range = 114))
 #' }
 #' @export
-#' @import TMB
 estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NULL, ...){
 
   flagRandomField = options[["random"]]
@@ -66,9 +67,9 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
                    DLL='GeoAdjust')
 
   flag1 = 1
-  obj <- normalize(obj, flag="flag1", value = 0)
+  obj <- TMB::normalize(obj, flag="flag1", value = 0)
 
-  opt0 = optim(par=obj$par, fn = obj$fn, gr = obj$gr,
+  opt0 = stats::optim(par=obj$par, fn = obj$fn, gr = obj$gr,
                method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1)),...)
 
   par <- obj$env$last.par
@@ -87,7 +88,7 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   #Uncertainty (95% credible intervals)
   # Simulate draws
   rmvnorm_prec <- function(mu, chol_prec, n.sims) {
-    z <- matrix(rnorm(length(mu) * n.sims), ncol=n.sims)
+    z <- matrix(stats::rnorm(length(mu) * n.sims), ncol=n.sims)
     L <- chol_prec #Cholesky(prec, super=TRUE)
     z <- Matrix::solve(L, z, system = "Lt") ## z = Lt^-1 %*% z
     z <- Matrix::solve(L, z, system = "Pt") ## z = Pt    %*% z
@@ -95,7 +96,7 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
     mu + z
   }
   prec = Qtest
-  L = Cholesky(prec, super = T)
+  L = Matrix::Cholesky(prec, super = T)
   t.draws <- rmvnorm_prec(mu = mu , chol_prec = L, n.sims = 10000)
   parnames <- c(names(mu))
 
@@ -111,10 +112,10 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
 
 
   CIlength = rep(0, npar+1)
-  CIlength[1] = quantile(intercept, probs = 0.975)- c(quantile(intercept, probs = 0.025))
+  CIlength[1] = stats::quantile(intercept, probs = 0.975)- c(stats::quantile(intercept, probs = 0.025))
   for(i in (1:npar)){
     b=paste0("beta", i)
-  CIlength[i+1] = (quantile(eval(parse(text = b)), probs = 0.975)- c(quantile(eval(parse(text = b)), probs = 0.025)))
+  CIlength[i+1] = (stats::quantile(eval(parse(text = b)), probs = 0.975)- c(stats::quantile(eval(parse(text = b)), probs = 0.025)))
   }
 
   res = data.frame(parameters = c("range", "sigma", "intercept", parNames),

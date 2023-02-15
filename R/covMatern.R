@@ -13,7 +13,7 @@
 #' range = space.range, stdDev = space.sigma)
 #' @export
 #' @import INLA
-covMatern = function(dMat, range, stdDev){
+covMatern = function(dMat = NULL, range = NULL, stdDev = NULL){
   Sig = INLA::inla.matern.cov(nu = 1,
                         kappa = sqrt(8*1)/range,
                         x = dMat,

@@ -31,6 +31,8 @@ Estimates model parameters
 }
 \examples{
 \dontrun{
-results <- estimateModel(data = data, nNodes = nNodes, options = list(random = 1, covariates = 1), priors = list(beta = c(0,1), range = 114))
+results <- estimateModel(data = data, nNodes = nNodes,
+options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
+range = 114))
 }
 }

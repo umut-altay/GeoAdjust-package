@@ -21,7 +21,7 @@ getSPDEPrior = function(mesh, U=1, alpha=0.05, medianRange=NULL) {
     range0 <- size/5
   else
     range0 = medianRange
-  spde = inla.spde2.pcmatern(mesh, prior.range=c(range0, 0.5), prior.sigma = c(U, alpha))
+  spde = INLA::inla.spde2.pcmatern(mesh, prior.range=c(range0, 0.5), prior.sigma = c(U, alpha))
   spde
 }
 
@@ -35,13 +35,13 @@ getSPDEMeshKenya = function(locs=NULL, n=5000, max.n=5000, doPlot=FALSE, max.edg
   }
 
   # generate mesh on R2
-  mesh = inla.mesh.2d(loc.domain = locs, n=n, max.n=max.n, offset=offset, cutoff=cutoff, max.edge=max.edge)
+  mesh = INLA::inla.mesh.2d(loc.domain = locs, n=n, max.n=max.n, offset=offset, cutoff=cutoff, max.edge=max.edge)
 
   # plot the mesh if user wants
-  if(doPlot) {
-    plot(mesh)
-    plotMapDat(project=TRUE, border="blue")
-  }
+  # if(doPlot) {
+  #   plot(mesh)
+  #   plotMapDat(project=TRUE, border="blue")
+  # }
 
   mesh
 }

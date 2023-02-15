@@ -13,7 +13,7 @@
 #' @import sp
 convertDegToKM = function(loc, crs = sp::CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs")){
   locLatLon = sp::SpatialPoints(loc,
-                            proj4string = CRS("+proj=longlat +datum=WGS84"))
+                            proj4string = sp::CRS("+proj=longlat +datum=WGS84"))
   locKM = sp::spTransform(locLatLon,
                           crs)
   return(locKM@coords[,c(1,2)])

@@ -4,7 +4,7 @@
 \alias{gridCountry}
 \title{Creates a grid of locations within the bounding box of the national borders of a country of interest.}
 \usage{
-gridCountry(admin0, res)
+gridCountry(admin0 = NULL, res = NULL)
 }
 \arguments{
 \item{admin0}{A SpatialPolygonsDataFrame object representing the national (admin0) level borders of the country}
@@ -19,7 +19,8 @@ Creates a grid of locations within the bounding box of the national borders of a
 }
 \examples{
 \dontrun{
-res is resolution in kilometers. Example : res = 5 means that the raster cells are created as 5 km by 5 km squares.
+res is resolution in kilometers. Example : res = 5 means that the raster
+cells are created as 5 km by 5 km squares.
 grid <- gridCountry(admin0 = admin0, res = res)
 }
 }

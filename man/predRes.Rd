@@ -5,13 +5,13 @@
 \title{Predicts new outcomes for the response variable}
 \usage{
 predRes(
-  obj = obj,
-  predCoords = predCoords,
-  draws = draws,
-  nCov = nCov,
-  covariateData = covariateData,
-  mesh.s = mesh.s,
-  flag = flag
+  obj = NULL,
+  predCoords = NULL,
+  draws = NULL,
+  nCov = NULL,
+  covariateData = NULL,
+  mesh.s = NULL,
+  flag = NULL
 )
 }
 \arguments{
