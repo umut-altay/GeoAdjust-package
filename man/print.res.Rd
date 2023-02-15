@@ -4,21 +4,13 @@
 \alias{print.res}
 \title{Prints the output of estimateModel() function.}
 \usage{
-print.res(x, ...)
+\method{print}{res}(x, ...)
 }
 \arguments{
 \item{x}{A list containing the model estimation output, returned by estimateModel function.}
 
-\item{...}{other}
-}
-\value{
-Prints the model parameter estimates and the corresponding credible interval lengths.
+\item{...}{ignored}
 }
 \description{
 Prints the output of estimateModel() function.
-}
-\examples{
-\dontrun{
-print.res(est = est)
-}
 }

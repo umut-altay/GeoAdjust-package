@@ -5,12 +5,13 @@
 #' @return A list. The first element of the list, "predRast", is the prediction raster. The second element of the list, "loc.pred", is a data frame containing the grid of coordinates of the cell centers (both in degrees and in kilometers) of the prediction raster.
 #' @examples
 #' \dontrun{
-#' res is resolution in kilometers. Example : res = 5 means that the raster cells are created as 5 km by 5 km squares.
+#' res is resolution in kilometers. Example : res = 5 means that the raster
+#' cells are created as 5 km by 5 km squares.
 #' grid <- gridCountry(admin0 = admin0, res = res)
 #' }
 #' @export
 #' @import spatialEco
-gridCountry = function(admin0, res){
+gridCountry = function(admin0 = NULL, res = NULL){
 
   # xx = seq(admin0@bbox[1,1], admin0@bbox[1,2], length.out = m)
   # yy = seq(admin0@bbox[2,1], admin0@bbox[2,2], length.out = n)
@@ -31,7 +32,7 @@ gridCountry = function(admin0, res){
   # return(loc.pred)
 
   proj = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
-  admin0_trnsfrmd = spTransform(admin0, proj)
+  admin0_trnsfrmd = sp::spTransform(admin0, proj)
   xmin = admin0_trnsfrmd@bbox[[1,1]]
   xmax = admin0_trnsfrmd@bbox[[1,2]]
   ymin = admin0_trnsfrmd@bbox[[2,1]]
@@ -39,11 +40,11 @@ gridCountry = function(admin0, res){
 
   res=res
 
-  predRast <- raster(xmn = xmin , xmx = xmax , ymn = ymin , ymx = ymax, resolution =res,
+  predRast <- raster::raster(xmn = xmin , xmx = xmax , ymn = ymin , ymx = ymax, resolution =res,
                      crs="+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs")
 
-  idx = 1:ncell(predRast)
-  loc.pred = xyFromCell(predRast, idx)
+  idx = 1:raster::ncell(predRast)
+  loc.pred = raster::xyFromCell(predRast, idx)
   loc.pred = data.frame(east = loc.pred[,1], north = loc.pred[,2])
   loc.pred[,c("long", "lat")] = convertKMToDeg(loc.pred[,c("east", "north")])
   return(list(loc.pred = loc.pred, predRast=predRast))

@@ -13,45 +13,19 @@
 #' \dontrun{
 #' predRes(obj = obj, predCoords = predCoords, nCov = nCov, mesh = mesh, covariateData = covariateData)
 #' }
+#' @importFrom stats median quantile sd
 #' @export
-predRes = function(obj = obj, predCoords = predCoords, draws = draws, nCov = nCov, covariateData = covariateData, mesh.s = mesh.s, flag = flag){
+predRes = function(obj = NULL, predCoords  = NULL, draws  = NULL, nCov  = NULL, covariateData  = NULL, mesh.s  = NULL, flag  = NULL){
 
   t.draws = draws
   predCoords = as.matrix(cbind(predCoords["east"], predCoords["north"]))
-  A.pred = inla.spde.make.A(mesh = mesh.s, loc = predCoords)
+  A.pred = INLA::inla.spde.make.A(mesh = mesh.s, loc = predCoords)
 
   par <- obj$env$last.par
   mu = par[names(par) != c("log_tau","log_kappa")]
   parnames <- c(names(mu))
   epsilon_draws  <- t.draws[parnames == 'Epsilon_s',]
   beta_draws<- t.draws[parnames == 'beta',]
-  # median = sd = quantile = NULL
-  # par <- obj$env$last.par
-  # Qtest = obj$env$spHess(par, random = TRUE)
-  #
-  # #Sampling
-  # mu <- c(par[-c(nCov+1,nCov+2)]) # nCov+1 refers to log_tau
-  #                                 # nCov+2 refers to log_kappa
-  # # Simulate draws
-  # rmvnorm_prec <- function(mu, chol_prec, n.sims) {
-  #   z <- matrix(rnorm(length(mu) * n.sims), ncol=n.sims)
-  #   L <- chol_prec #Cholesky(prec, super=TRUE)
-  #   z <- Matrix::solve(L, z, system = "Lt") ## z = Lt^-1 %*% z
-  #   z <- Matrix::solve(L, z, system = "Pt") ## z = Pt    %*% z
-  #   z <- as.matrix(z)
-  #   mu + z
-  #
-  # }
-    # prec = Qtest
-    # L = Matrix::Cholesky(prec, super = T)
-
-    # A.pred = INLA::inla.spde.make.A(mesh = mesh.s, loc = as.matrix(predCoords))
-    # #
-    # t.draws <- rmvnorm_prec(mu = mu , chol_prec = L, n.sims = 10000)
-    # parnames <- c(names(mu))
-    #
-    # epsilon_draws  <- t.draws[parnames == 'Epsilon_s',]
-    # beta_draws<- t.draws[parnames == 'beta',]
 
     predCoordsDegree = convertKMToDeg(predCoords)
     predCoordsDegree = sp::SpatialPoints(cbind(predCoordsDegree[,1], predCoordsDegree[,2]), proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
@@ -91,6 +65,8 @@ predRes = function(obj = obj, predCoords = predCoords, draws = draws, nCov = nCo
                                 sd     = (apply(eta.samples, 1, sd)),
                                 lower = (apply(eta.samples, 1, quantile, .025, na.rm = TRUE)),  #na.rm = TRUE is newly added
                                 upper = (apply(eta.samples, 1, quantile, .975, na.rm = TRUE)))
+
+
 
     return(PredictedResponses = PredictedResponses)
 

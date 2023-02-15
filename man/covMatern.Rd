@@ -4,7 +4,7 @@
 \alias{covMatern}
 \title{Creates a Matern covariance matrix.}
 \usage{
-covMatern(dMat, range, stdDev)
+covMatern(dMat = NULL, range = NULL, stdDev = NULL)
 }
 \arguments{
 \item{dMat}{Distance matrix.}

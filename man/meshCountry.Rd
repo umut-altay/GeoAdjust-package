@@ -4,7 +4,7 @@
 \alias{meshCountry}
 \title{Creates a constrained refined Delaunay triangulation mesh based on the country borders.}
 \usage{
-meshCountry(admin0, max.edge, offset)
+meshCountry(admin0 = NULL, max.edge = NULL, offset = NULL)
 }
 \arguments{
 \item{admin0}{A SpatialPolygonsDataFrame representing the country borders.}

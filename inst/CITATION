@@ -1,16 +1,10 @@
-citHeader("To cite GeoAdjust in publications use:")
+citHeader("To cite GeoAdjust in publications, please use:")
 
-citEntry(
-  entry    = "Article",
-  title    = ,
-  author   = ,
-  journal  = ,
-  year     = ,
-  volume   = ,
-  number   = ,
-  pages    = ,
-  url      = ,
-  textVersion = paste(
-
-  )
+citEntry(entry = "Article",
+  title = "Jittering Impacts Raster- and Distance-based Geostatistical Analyses of DHS Data",
+  author = "Altay, Umut and Paige, John and Riebler, Andrea and Fuglstad, Geir-Arne",
+  journal = "arXiv",
+  year = "2022",
+  url = "https://arxiv.org/abs/2211.07442",
+  textVersion = "U. Altay., J. Paige., A. Riebler. and G. A. Fuglstad. Jittering Impacts Raster- and Distance-based Geostatistical Analyses of DHS Data. arXiv. 2022."
 )
