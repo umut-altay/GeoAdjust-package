@@ -5,17 +5,11 @@
 \title{Converts a set of coordinates in degrees into a new set of coordinates in
 The Universal Transverse Mercator (UTM) zone:37 coordinate system}
 \usage{
-convertDegToKM(
-  loc,
-  crs =
-    sp::CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs")
-)
+convertDegToKM(loc)
 }
 \arguments{
 \item{loc}{A two column matrix of coordinates (The first column is longitude
 and the second column is latitude).}
-
-\item{crs}{The coordinate reference system.}
 }
 \value{
 A two column matrix of The Universal Transverse Mercator (UTM) zone:
