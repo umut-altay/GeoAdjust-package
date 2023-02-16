@@ -20,13 +20,13 @@ Imports:
     raster,
     sp,
     stats,
-    INLA,
     rgeos,
     SUMMER,
     Matrix,
     ggplot2,
     fields,
     geosphere,
-    TMB
-Additional_repositories: https://inla.r-inla-download.org/R/testing/
+    TMB,
+    INLA
+Additional_repositories: https://inla.r-inla-download.org/R/stable/
 

@@ -1,9 +1,13 @@
-#' Converts a set of coordinates in degrees into a new set of coordinates in The Universal Transverse Mercator (UTM) zone:37 coordinate system
+#' Converts a set of coordinates in degrees into a new set of coordinates in
+#' The Universal Transverse Mercator (UTM) zone:37 coordinate system
 #'
 #'
-#' @param loc A two column matrix of coordinates (The first column is longitude and the second column is latitude).
+#' @param loc A two column matrix of coordinates (The first column is longitude
+#' and the second column is latitude).
 #' @param crs The coordinate reference system.
-#' @return A two column matrix of The Universal Transverse Mercator (UTM) zone:37 coordinate system (https://www.usgs.gov/faqs/what-does-term-utm-mean-utm-better-or-more-accurate-latitudelongitude).
+#' @return A two column matrix of The Universal Transverse Mercator (UTM) zone:
+#' 37 coordinate system (https://www.usgs.gov/faqs/what-does-term-utm-mean-utm-
+#' better-or-more-accurate-latitudelongitude).
 #' @examples
 #' data("clusterData")
 #' loc = cbind(clusterData$long, clusterData$lat)
