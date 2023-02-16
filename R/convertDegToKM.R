@@ -4,7 +4,6 @@
 #'
 #' @param loc A two column matrix of coordinates (The first column is longitude
 #' and the second column is latitude).
-#' @param crs The coordinate reference system.
 #' @return A two column matrix of The Universal Transverse Mercator (UTM) zone:
 #' 37 coordinate system (https://www.usgs.gov/faqs/what-does-term-utm-mean-utm-
 #' better-or-more-accurate-latitudelongitude).
@@ -14,7 +13,8 @@
 #' locKM <- convertDegToKM(loc = loc)
 #' head(locKM)
 #' @export
-convertDegToKM = function(loc, crs = sp::CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs")){
+convertDegToKM = function(loc){
+  crs = sp::CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs")
   locLatLon = sp::SpatialPoints(loc,
                             proj4string = sp::CRS("+proj=longlat +datum=WGS84"))
   locKM = sp::spTransform(locLatLon,
