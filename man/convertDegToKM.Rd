@@ -2,7 +2,8 @@
 % Please edit documentation in R/convertDegToKM.R
 \name{convertDegToKM}
 \alias{convertDegToKM}
-\title{Converts a set of coordinates in degrees into a new set of coordinates in The Universal Transverse Mercator (UTM) zone:37 coordinate system}
+\title{Converts a set of coordinates in degrees into a new set of coordinates in
+The Universal Transverse Mercator (UTM) zone:37 coordinate system}
 \usage{
 convertDegToKM(
   loc,
@@ -11,15 +12,19 @@ convertDegToKM(
 )
 }
 \arguments{
-\item{loc}{A two column matrix of coordinates (The first column is longitude and the second column is latitude).}
+\item{loc}{A two column matrix of coordinates (The first column is longitude
+and the second column is latitude).}
 
 \item{crs}{The coordinate reference system.}
 }
 \value{
-A two column matrix of The Universal Transverse Mercator (UTM) zone:37 coordinate system (https://www.usgs.gov/faqs/what-does-term-utm-mean-utm-better-or-more-accurate-latitudelongitude).
+A two column matrix of The Universal Transverse Mercator (UTM) zone:
+37 coordinate system (https://www.usgs.gov/faqs/what-does-term-utm-mean-utm-
+better-or-more-accurate-latitudelongitude).
 }
 \description{
-Converts a set of coordinates in degrees into a new set of coordinates in The Universal Transverse Mercator (UTM) zone:37 coordinate system
+Converts a set of coordinates in degrees into a new set of coordinates in
+The Universal Transverse Mercator (UTM) zone:37 coordinate system
 }
 \examples{
 data("clusterData")
