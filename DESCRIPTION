@@ -1,9 +1,9 @@
 Package: GeoAdjust
 Type: Package
 Title: Accounting for Random Displacements of True GPS Coordinates of Data
-Version: 0.0.1.0
+Version: 1.0.0
 Author: Umut Altay
-Maintainer: The package maintainer <umut.altay@ntnu.no>
+Maintainer: The package maintainer <geir-arne.fuglstad@ntnu.no>
 Description: The purpose of the package is to account for the random displacements (jittering) of true survey household cluster center coordinates in geostatistical analyses of Demographic and Health Surveys program (DHS) data. The package allows for adjustment for jittering either in the spatial random effect, or in the raster/distance based covariates, or both.
 Encoding: UTF-8
 LazyData: true
