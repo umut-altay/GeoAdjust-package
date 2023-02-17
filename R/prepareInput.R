@@ -33,11 +33,21 @@
 #' covariateData = covariateData)
 #' }
 #' @export
-#' @import INLA
 prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
                          urban=NULL, mesh.s=NULL,
                          adminMap=NULL, nSubAPerPoint=10, nSubRPerPoint=10,
                          covariateData=NULL){
+
+  if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
+  }
+
+  # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
+  if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    if (!is.element("INLA", (.packages()))) {
+      attachNamespace("INLA")
+    }
+  }
 
   # extract arguments
   flag2 = likelihood

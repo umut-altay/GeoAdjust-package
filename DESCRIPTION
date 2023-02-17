@@ -9,6 +9,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.2
 Suggests: 
+    INLA,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
@@ -26,7 +27,6 @@ Imports:
     ggplot2,
     fields,
     geosphere,
-    TMB,
-    INLA
+    TMB
 Additional_repositories: https://inla.r-inla-download.org/R/stable/
 

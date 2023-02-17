@@ -17,6 +17,17 @@ getSPDEPrior = function(mesh, U=1, alpha=0.05, medianRange=NULL) {
   #                           B.kappa = cbind(log(kappa0), 0, -1), theta.prior.mean = c(0, 0),
   #                           theta.prior.prec = c(0.1, 1))
 
+  if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
+  }
+
+  # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
+  if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    if (!is.element("INLA", (.packages()))) {
+      attachNamespace("INLA")
+    }
+  }
+
   if(is.null(medianRange))
     range0 <- size/5
   else
@@ -28,6 +39,18 @@ getSPDEPrior = function(mesh, U=1, alpha=0.05, medianRange=NULL) {
 # get a reasonable default mesh triangulation for the SPDE model for the Kenya data
 getSPDEMeshKenya = function(locs=NULL, n=5000, max.n=5000, doPlot=FALSE, max.edge=c(7, 200),
                             offset=-.08, cutoff=4, jitterAmount=max.edge[1]/4, seed=123) {
+
+  if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
+  }
+
+  # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
+  if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    if (!is.element("INLA", (.packages()))) {
+      attachNamespace("INLA")
+    }
+  }
+
 
   if(is.null(locs)) {
     # jitter the locations used to create the mesh so that they do not always lie on mesh points

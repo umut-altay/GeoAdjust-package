@@ -8,7 +8,6 @@
 #' @param admin2 A SpatialPolygonsDataFrame representing the second level (admin2) subnational borders of the country.
 #' @param rmPoly A number referring to the ID number of the admin2 level polygon that needs to be left uncolored.
 #' @param locObs A data frame containing the coordinates of the observation points (DHS locations) in kilometers.
-#' @param dir The directory that the plots needs to be saved into.
 #' @examples
 #' \dontrun{
 #' plotPred(x = predcitions, predRaster = predRaster, admin0 = admin0,
@@ -16,7 +15,7 @@
 #' dir = "~/Desktop")
 #' }
 #' @export
-plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL, admin2 = NULL, rmPoly = NULL, locObs = NULL, dir = NULL){
+plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL, admin2 = NULL, rmPoly = NULL, locObs = NULL){
 
   proj = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
   admin0_trnsfrmd = sp::spTransform(admin0,proj)
@@ -70,11 +69,9 @@ plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL
         panel.grid.major.y = ggplot2::element_blank(),
         panel.grid.minor.y = ggplot2::element_blank()) +
     ggplot2::theme(legend.text=ggplot2::element_text(size=35))+
-    ggplot2::scale_fill_viridis_c(option = "viridis", begin = 0.2, end = 1, limits = c(0, 0.99), na.value="white") +ggplot2::geom_point(data = locObs, color = "red", size=0.001, shape="plus")+
+    ggplot2::scale_fill_viridis_c(option = "viridis", begin = 0.2, end = 1, limits = c(min(val), max(val)), na.value="white") +ggplot2::geom_point(data = locObs, color = "red", size=0.001, shape="plus")+
     ggplot2::guides(fill = ggplot2::guide_colourbar(barwidth = 2.5, barheight = 25, title = ggplot2::labs("pred."), title.vjust=3) ) +
     ggplot2::scale_x_continuous(expand=c(0,0)) + ggplot2::scale_y_continuous(expand=c(0,0))
-
-  ggplot2::ggsave("predictions.pdf", path = dir)
 
   # plotting the uncertainty (coefficient of variation)
   val = raster::getValues(uncertainty)
@@ -95,12 +92,9 @@ plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL
           panel.grid.major.y = ggplot2::element_blank(),
           panel.grid.minor.y = ggplot2::element_blank()) +
     ggplot2::theme(legend.text=ggplot2::element_text(size=35))+
-    ggplot2::scale_fill_viridis_c(option = "viridis", begin = 0.2, end = 1, limits = c(0.68, 233.75), na.value="white") +ggplot2::geom_point(data = locObs, color = "red", size=0.001, shape="plus")+
+    ggplot2::scale_fill_viridis_c(option = "viridis", begin = 0.2, end = 1, limits = c(min(val), max(val)), na.value="white") +ggplot2::geom_point(data = locObs, color = "red", size=0.001, shape="plus")+
     ggplot2::guides(fill = ggplot2::guide_colourbar(barwidth = 2.5, barheight = 25, title = ggplot2::labs("cv (%)"), title.vjust=3) ) +
     ggplot2::scale_x_continuous(expand=c(0,0)) + ggplot2::scale_y_continuous(expand=c(0,0))
-
-  ggplot2::ggsave("uncertainty.pdf", path = dir)
-
 
 }
 

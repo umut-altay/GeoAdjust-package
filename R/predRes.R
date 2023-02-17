@@ -16,6 +16,18 @@
 #' @export
 predRes = function(obj = NULL, predCoords  = NULL, draws  = NULL, nCov  = NULL, covariateData  = NULL, mesh.s  = NULL, flag  = NULL){
 
+  if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
+  }
+
+  # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
+  if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    if (!is.element("INLA", (.packages()))) {
+      attachNamespace("INLA")
+    }
+  }
+
+
   t.draws = draws
   predCoords = as.matrix(cbind(predCoords["east"], predCoords["north"]))
   A.pred = INLA::inla.spde.make.A(mesh = mesh.s, loc = predCoords)

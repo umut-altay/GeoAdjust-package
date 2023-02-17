@@ -8,10 +8,12 @@
 #' 37 coordinate system (https://www.usgs.gov/faqs/what-does-term-utm-mean-utm-
 #' better-or-more-accurate-latitudelongitude).
 #' @examples
+#' \dontrun{
 #' data("clusterData")
 #' loc = cbind(clusterData$long, clusterData$lat)
 #' locKM <- convertDegToKM(loc = loc)
 #' head(locKM)
+#' }
 #' @export
 convertDegToKM = function(loc){
   crs = sp::CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs")
