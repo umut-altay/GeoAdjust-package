@@ -12,8 +12,7 @@ plotPred(
   admin1 = NULL,
   admin2 = NULL,
   rmPoly = NULL,
-  locObs = NULL,
-  dir = NULL
+  locObs = NULL
 )
 }
 \arguments{
@@ -30,8 +29,6 @@ plotPred(
 \item{rmPoly}{A number referring to the ID number of the admin2 level polygon that needs to be left uncolored.}
 
 \item{locObs}{A data frame containing the coordinates of the observation points (DHS locations) in kilometers.}
-
-\item{dir}{The directory that the plots needs to be saved into.}
 }
 \description{
 Plots the predictions and the corresponding uncertainty (coefficient of
