@@ -15,18 +15,13 @@ There were 3 NOTEs:
     Package suggested but not available for checking: 'INLA'
     
     The package INLA is not on CRAN, therefore it is registered under additional
-    repositories in the description file. The functions which requires INLA in
-    the package are written in a way that they either warn the user to install
-    INLA from its relevant repository, or if it is already installed, they 
-    attach the namespace.
+    repositories and suggests in the description file. The functions which 
+    require INLA in the package are written in a way that they either instruct the 
+    user on how to install INLA from its repository, or if it is already 
+    installed, they attach the namespace.
     
-*   checking CRAN incoming feasibility ... [10s] NOTE
-    Maintainer: 'The package maintainer <geir-arne.fuglstad@ntnu.no>'
-    
-    The package author (Umut Altay) is a PhD student, whose email account
-    will expire after graduation. Geir-Arne Fuglstad is the authors' supervisor.
-    The package maintainer will be Geir-Arne Fuglstad since he has a permanent 
-    email account.
-    
-    
+*   checking CRAN incoming feasibility ... [11s] NOTE
+    Maintainer: 'The package maintainer <altayumut.ua@gmail.com>'
+
+    The note indicating the email address of the package maintainer.
     
