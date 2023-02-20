@@ -37,6 +37,7 @@ Predicts model outcomes at new locations.
 }
 \examples{
 \dontrun{
-predRes(obj = obj, predCoords = predCoords, nCov = nCov, mesh = mesh, covariateData = covariateData)
+predRes(obj = obj, predCoords = predCoords, draws = draws, nCov = nCov,
+mesh = mesh, covariateData = covariateData, flag = flag)
 }
 }

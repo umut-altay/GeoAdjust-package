@@ -21,8 +21,11 @@ standard deviation of Gaussian prior. Range is a value representing the median r
 \item{...}{Any other arguments of optim() function.}
 }
 \value{
-A data frame called res, containing the estimated model parameters, and obj which contains the required components for predictions
-with the model (if wanted).
+Model estimation results of class called res. The output consists of four elements:
+A data frame containing the estimated model parameters and the corresponding 95% credible interval lengths,
+The optimized core model object from autodifferentiation of TMB,
+A matrix containing the sampled coefficient effect sizes and the random effect coefficients,
+A character string indicating the likelihood type in the model.
 }
 \description{
 Estimates model parameters

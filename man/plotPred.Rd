@@ -30,14 +30,17 @@ plotPred(
 
 \item{locObs}{A data frame containing the coordinates of the observation points (DHS locations) in kilometers.}
 }
+\value{
+Plots two ggplot objects. One of them (pred.) shows the median predictions and the other one (cv%) shows the
+corresponding coefficient of variations across the country, respectively.
+}
 \description{
 Plots the predictions and the corresponding uncertainty (coefficient of
 variation), and saves them into the preferred directory as separate .pdf files.
 }
 \examples{
 \dontrun{
-plotPred(x = predcitions, predRaster = predRaster, admin0 = admin0,
-admin1 = admin1, admin2 = admin2, rmPoly = 160, locObs = locObs,
-dir = "~/Desktop")
+plotPred(pred = predictions, predRaster = predRaster, admin0 = admin0,
+admin1 = admin1, admin2 = admin2, rmPoly = 160, locObs = locObs)
 }
 }

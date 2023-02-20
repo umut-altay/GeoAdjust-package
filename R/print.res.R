@@ -3,6 +3,9 @@
 #' @param x A list containing the model estimation output, returned by
 #' estimateModel() function.
 #' @param ... ignored.
+#' @return Prints the model estimation results of class res as a table that
+#' shows the estimated model parameters and the corresponding 95% credible
+#' interval lengths.
 #' @export
 print.res <- function(x, ...){
   p1 = lengths(x[["res"]]) # number of rows
