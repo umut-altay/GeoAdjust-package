@@ -12,6 +12,11 @@ estimateModel() function.}
 
 \item{...}{ignored.}
 }
+\value{
+Prints the model estimation results of class res as a table that
+shows the estimated model parameters and the corresponding 95% credible
+interval lengths.
+}
 \description{
 Prints the output of estimateModel() function.
 }

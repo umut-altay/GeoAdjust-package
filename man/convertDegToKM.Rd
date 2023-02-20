@@ -21,10 +21,8 @@ Converts a set of coordinates in degrees into a new set of coordinates in
 The Universal Transverse Mercator (UTM) zone:37 coordinate system
 }
 \examples{
-\dontrun{
 data("clusterData")
 loc = cbind(clusterData$long, clusterData$lat)
 locKM <- convertDegToKM(loc = loc)
 head(locKM)
-}
 }

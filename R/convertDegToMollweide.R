@@ -3,12 +3,10 @@
 #' @param loc A two column matrix of coordinates (The first column is longitude and the second column is latitude).
 #' @return A two column matrix of coordinates in Mollweide (https://pubs.usgs.gov/pp/1395/report.pdf) coordinate system.
 #' @examples
-#' \dontrun{
 #' data("clusterData")
 #' loc = cbind(clusterData$long, clusterData$lat)
 #' locMoll <- convertDegToMollweide(loc = loc)
 #' head(locMoll)
-#' }
 #' @export
 convertDegToMollweide = function(loc){
   locLatLon = sp::SpatialPoints(loc,

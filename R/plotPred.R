@@ -8,11 +8,12 @@
 #' @param admin2 A SpatialPolygonsDataFrame representing the second level (admin2) subnational borders of the country.
 #' @param rmPoly A number referring to the ID number of the admin2 level polygon that needs to be left uncolored.
 #' @param locObs A data frame containing the coordinates of the observation points (DHS locations) in kilometers.
+#' @return Plots two ggplot objects. One of them (pred.) shows the median predictions and the other one (cv%) shows the
+#' corresponding coefficient of variations across the country, respectively.
 #' @examples
 #' \dontrun{
-#' plotPred(x = predcitions, predRaster = predRaster, admin0 = admin0,
-#' admin1 = admin1, admin2 = admin2, rmPoly = 160, locObs = locObs,
-#' dir = "~/Desktop")
+#' plotPred(pred = predictions, predRaster = predRaster, admin0 = admin0,
+#' admin1 = admin1, admin2 = admin2, rmPoly = 160, locObs = locObs)
 #' }
 #' @export
 plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL, admin2 = NULL, rmPoly = NULL, locObs = NULL){

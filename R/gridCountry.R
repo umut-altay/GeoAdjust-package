@@ -5,8 +5,6 @@
 #' @return A list. The first element of the list, predRast, is the prediction raster. The second element of the list, loc.pred, is a data frame containing the grid of coordinates of the cell centers (both in degrees and in kilometers) of the prediction raster.
 #' @examples
 #' \dontrun{
-#' res is resolution in kilometers. Example : res = 5 means that the raster
-#' cells are created as 5 km by 5 km squares.
 #' grid <- gridCountry(admin0 = admin0, res = res)
 #' }
 #' @export
@@ -18,8 +16,6 @@ gridCountry = function(admin0 = NULL, res = NULL){
   xmax = admin0_trnsfrmd@bbox[[1,2]]
   ymin = admin0_trnsfrmd@bbox[[2,1]]
   ymax = admin0_trnsfrmd@bbox[[2,2]]
-
-  res=res
 
   predRast <- raster::raster(xmn = xmin , xmx = xmax , ymn = ymin , ymx = ymax, resolution =res,
                      crs="+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs")

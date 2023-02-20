@@ -10,7 +10,8 @@
 #' @return A matrix containing the mean, median,standard deviation and the lower and the upper bounds of 95% credible intervals of the predictions.
 #' @examples
 #' \dontrun{
-#' predRes(obj = obj, predCoords = predCoords, nCov = nCov, mesh = mesh, covariateData = covariateData)
+#' predRes(obj = obj, predCoords = predCoords, draws = draws, nCov = nCov,
+#' mesh = mesh, covariateData = covariateData, flag = flag)
 #' }
 #' @importFrom stats median quantile sd
 #' @export

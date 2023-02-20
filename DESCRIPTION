@@ -7,7 +7,14 @@ Authors@R: c(person(given = "Umut", family = "Altay", email= "altayumut.ua@gmail
              person(given = "Geir-Arne", family = "Fuglstad", email = "geir-arne.fuglstad@ntnu.no", role = "aut"),
              person(given = "Andrea", family = "Riebler", email = "andrea.riebler@ntnu.no", role = "aut")
             )
-Description: The purpose of the package is to account for the random displacements (jittering) of true survey household cluster center coordinates in geostatistical analyses of Demographic and Health Surveys program (DHS) data. The package allows for adjustment for jittering either in the spatial random effect, or in the raster/distance based covariates, or both.
+Description: The purpose is to account for the random displacements 
+ (jittering) of true survey household cluster center coordinates in geostatistical 
+ analyses of Demographic and Health Surveys program (DHS) data. Adjustment for 
+ jittering can be implemented either in the spatial random effect, or in the 
+ raster/distance based covariates, or in both. Detailed information about the methods 
+ behind the package functionality can be found in two preprints.
+ Umut Altay, John Paige, Andrea Riebler, Geir-Arne Fuglstad (2022) <arXiv:2202.11035v2>. 
+ Umut Altay, John Paige, Andrea Riebler, Geir-Arne Fuglstad (2022) <arXiv:2211.07442v1>. 
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.2
@@ -15,7 +22,8 @@ Suggests:
     INLA,
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    rgdal
 Config/testthat/edition: 3
 Depends: R (>= 3.5)
 LinkingTo: TMB, RcppEigen

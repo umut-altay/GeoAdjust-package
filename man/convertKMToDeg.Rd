@@ -16,10 +16,8 @@ A two column matrix of coordinates in degrees (the first column is longitude and
 Converts a set of coordinates in The Universal Transverse Mercator (UTM) zone:37 coordinate system into a new set of coordinates in degrees.
 }
 \examples{
-\dontrun{
 data("clusterData")
 locKM = cbind(clusterData$east, clusterData$north)
 locDegree <- convertKMToDeg(loc = locKM)
 head(locDegree)
-}
 }

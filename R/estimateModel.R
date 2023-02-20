@@ -8,8 +8,11 @@
 #' to the covariates (including the intercept). The first element of it is the mean and the second one is the
 #' standard deviation of Gaussian prior. Range is a value representing the median range in kilometers, which will be used for constructing the PC (Penalized-complexity) priors.
 #' @param ... Any other arguments of optim() function.
-#' @return A data frame called res, containing the estimated model parameters, and obj which contains the required components for predictions
-#' with the model (if wanted).
+#' @return Model estimation results of class called res. The output consists of four elements:
+#' A data frame containing the estimated model parameters and the corresponding 95% credible interval lengths,
+#' The optimized core model object from autodifferentiation of TMB,
+#' A matrix containing the sampled coefficient effect sizes and the random effect coefficients,
+#' A character string indicating the likelihood type in the model.
 #' @examples
 #' \dontrun{
 #' results <- estimateModel(data = data, nNodes = nNodes,
