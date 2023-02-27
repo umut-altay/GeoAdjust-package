@@ -11,28 +11,36 @@
 #' @return Plots two ggplot objects. One of them (pred.) shows the median predictions and the other one (cv%) shows the
 #' corresponding coefficient of variations across the country, respectively.
 #' @examples
-#' \dontrun{
-#' plotPred(pred = predictions, predRaster = predRaster, admin0 = admin0,
-#' admin1 = admin1, admin2 = admin2, rmPoly = 160, locObs = locObs)
-#' }
+#' path1 <- system.file("extdata", "examplePredictionResults.rda",
+#' package = "GeoAdjust")
+#' path2 <- system.file("extdata", "exampleGrid.rda", package = "GeoAdjust")
+#' path3 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+#' load(paste0(path1))
+#' load(paste0(path2))
+#' load(paste0(path3))
+#' plotPred(pred = examplePredictionResults,
+#' predRaster = exampleGrid[["predRast"]], admin0 = adm0,
+#' admin1 = adm1, admin2 = NULL, rmPoly = NULL,
+#' locObs = data.frame(East = surveyData$east, North = surveyData$north))
 #' @export
 plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL, admin2 = NULL, rmPoly = NULL, locObs = NULL){
 
   proj = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
   admin0_trnsfrmd = sp::spTransform(admin0,proj)
   admin1_trnsfrmd = sp::spTransform(admin1,proj)
+  if(!is.null(admin2)){
   admin2_trnsfrmd = sp::spTransform(admin2,proj)
-
+}
   idx = 1:raster::ncell(predRaster)
-  predCoords = raster::xyFromCell(predRast, idx)
+  predCoords = raster::xyFromCell(predRaster, idx)
   predCoords = sp::SpatialPoints(predCoords, proj4string=sp::CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"))
 
   uncertainty = (pred[,3]/pred[,1])*100
-  uncertainty = raster::setValues(predRast, values = uncertainty, index=idx)
+  uncertainty = raster::setValues(predRaster, values = uncertainty, index=idx)
 
-  pred = raster::setValues(predRast, values = pred[,2], index=idx)
+  pred = raster::setValues(predRaster, values = pred[,2], index=idx)
 
-  if (rmPoly){
+  if (!is.null(rmPoly)){
     polyg = admin2_trnsfrmd[rmPoly,] # the lake
 
   # find which points are inside the polygon that needs to be removed, and assign NA to them
@@ -50,7 +58,7 @@ plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL
 
   dfCountry <- ggplot2::fortify(admin1_trnsfrmd, region = "NAME_1")
 
-  locsPred = raster::xyFromCell(predRast, idx)
+  locsPred = raster::xyFromCell(predRaster, idx)
 
   # plotting the predictions
   val = raster::getValues(pred)

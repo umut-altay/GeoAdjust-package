@@ -31,9 +31,12 @@ A character string indicating the likelihood type in the model.
 Estimates model parameters
 }
 \examples{
-\dontrun{
-results <- estimateModel(data = data, nNodes = nNodes,
-options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-range = 114))
-}
+path1 <- system.file("extdata", "exampleInputData.rda", package = "GeoAdjust")
+path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
+load(paste0(path1))
+load(paste0(path2))
+nNodes = exampleMesh[['n']]
+results <- estimateModel(data = exampleInputData, nNodes = nNodes,
+options = list(random = 1, covariates = 0), priors = list(beta = c(0,1),
+range = 114, USpatial = 1, alphaSpatial = 0.05))
 }

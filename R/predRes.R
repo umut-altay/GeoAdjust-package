@@ -9,9 +9,18 @@
 #' @param flag A value indicating the type of the likelihood that will be used. Pass 0 for Gaussian, 1 for binomial and 2 for Poisson likelihoods.
 #' @return A matrix containing the mean, median,standard deviation and the lower and the upper bounds of 95% credible intervals of the predictions.
 #' @examples
-#' \dontrun{
-#' predRes(obj = obj, predCoords = predCoords, draws = draws, nCov = nCov,
-#' mesh = mesh, covariateData = covariateData, flag = flag)
+#' if(requireNamespace("INLA")){
+#' path1 <- system.file("extdata", "exampleGrid.rda", package = "GeoAdjust")
+#' path2 <- system.file("extdata", "exampleEstimationResults.rda", package = "GeoAdjust")
+#' path3 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
+#' load(paste0(path1))
+#' load(paste0(path2))
+#' load(paste0(path3))
+#' pred = predRes(obj = exampleEstimationResults[["obj"]],
+#' predCoords = cbind(exampleGrid[["loc.pred"]]["east"],
+#' exampleGrid[["loc.pred"]]["north"]),
+#' draws = exampleEstimationResults[["draws"]], nCov = 1,
+#' mesh.s = exampleMesh, covariateData = NULL, flag = 1)
 #' }
 #' @importFrom stats median quantile sd
 #' @export
@@ -34,32 +43,41 @@ predRes = function(obj = NULL, predCoords  = NULL, draws  = NULL, nCov  = NULL, 
   A.pred = INLA::inla.spde.make.A(mesh = mesh.s, loc = predCoords)
 
   par <- obj$env$last.par
-  mu = par[names(par) != c("log_tau","log_kappa")]
+  idx1 = which(names(par)=="log_tau")
+  idx2 = which(names(par)=="log_kappa")
+  mu = par[-c(idx1, idx2)]
   parnames <- c(names(mu))
   epsilon_draws  <- t.draws[parnames == 'Epsilon_s',]
+
+
   beta_draws<- t.draws[parnames == 'beta',]
 
     predCoordsDegree = convertKMToDeg(predCoords)
     predCoordsDegree = sp::SpatialPoints(cbind(predCoordsDegree[,1], predCoordsDegree[,2]), proj4string = sp::CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
 
+    if(!is.null(covariateData)){
     # Extract the corresponding covariate values at prediction locations
     for (i in 1:length(covariateData)){
       #Extract covariate values from data rasters at predCoords
       assign(paste0("covariatePred", i), raster::extract(covariateData[[1]], predCoordsDegree, ncol=2))
     }
-
+}
     nLoc_pred = length(predCoords[,1])
 
     covariatesAtPred = rep(1, nLoc_pred)
 
+    if(!is.null(covariateData)){
     for(i in 1:length(covariateData)){
       covariatesAtPred = cbind(covariatesAtPred, get(paste0("covariatePred", i)))
     }
-
+}
     covariatesAtPred[is.nan(covariatesAtPred)] = 0
     covariatesAtPred[is.na(covariatesAtPred)] = 0
-
+    if(!is.null(covariateData)){
     eta.samples = covariatesAtPred%*%beta_draws + as.matrix(A.pred%*%epsilon_draws)
+    } else {
+      eta.samples = as.matrix(covariatesAtPred)%*%t(as.matrix(beta_draws)) + as.matrix(A.pred%*%epsilon_draws)
+    }
     #
 
     if (flag == 1){

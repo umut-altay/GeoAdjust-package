@@ -16,8 +16,9 @@ A two column matrix of coordinates in degrees (the first column is longitude and
 Converts a set of coordinates in The Universal Transverse Mercator (UTM) zone:37 coordinate system into a new set of coordinates in degrees.
 }
 \examples{
-data("clusterData")
-locKM = cbind(clusterData$east, clusterData$north)
+path <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+load(paste0(path))
+locKM <- cbind(surveyData$east, surveyData$north)
 locDegree <- convertKMToDeg(loc = locKM)
 head(locDegree)
 }

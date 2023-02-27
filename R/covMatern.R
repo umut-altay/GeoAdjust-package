@@ -5,16 +5,18 @@
 #' @param stdDev The marginal variance.
 #' @return Matern covariance matrix.
 #' @examples
-#' \dontrun{
-#' data("clusterData")
-#' loc = cbind(clusterData$east, clusterData$north)
-#' space.range = 114
-#' space.sigma = 1
+#' if(requireNamespace("INLA")){
+#' path <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+#' load(paste0(path))
+#' loc <- cbind(surveyData$east, surveyData$north)
+#' space.range <- 114
+#' space.sigma <- 1
 #' covMat <- covMatern(dMat = as.matrix(dist(loc)),
 #' range = space.range, stdDev = space.sigma)
 #' }
 #' @export
 covMatern = function(dMat = NULL, range = NULL, stdDev = NULL){
+
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
     stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
   }

@@ -18,7 +18,7 @@ A list. The first element of the list, predRast, is the prediction raster. The s
 Creates a grid of locations within the bounding box of the national borders of a country of interest.
 }
 \examples{
-\dontrun{
-grid <- gridCountry(admin0 = admin0, res = res)
-}
+path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+load(paste0(path1))
+grid <- gridCountry(admin0 = adm0, res = 5)
 }

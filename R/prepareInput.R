@@ -25,12 +25,17 @@
 #' @param covariateData A list containing the covariate rasters.
 #' @return A list containing the input for estimateModel() function.
 #' @examples
-#' \dontrun{
-#' inputData <- prepareInput(response = response, locObs = locObs,
-#' likelihood = likelihood, jScale = jScale,
-#' urban = urban, mesh.s = mesh.s, adminMap = adminMap,
-#' nSubAPerPoint = nSubAPerPoint, nSubRPerPoint = nSubRPerPoint,
-#' covariateData = covariateData)
+#' if(requireNamespace("INLA")){
+#' path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+#' path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
+#' load(paste0(path1))
+#' load(paste0(path2))
+#' inputData <- prepareInput(response = list(ys = surveyData$ys, ns = surveyData$ns),
+#' locObs = cbind(surveyData$east, surveyData$north),
+#' likelihood = 1, jScale = 1,
+#' urban = surveyData$urbanRural, mesh.s = exampleMesh, adminMap = adm1,
+#' nSubAPerPoint = 10, nSubRPerPoint = 10,
+#' covariateData = NULL)
 #' }
 #' @export
 prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
@@ -132,22 +137,28 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
   coordsRuralDegree = sp::SpatialPoints(cbind(coordsRuralDegree[,1], coordsRuralDegree[,2]), proj4string = sp::CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
 
   # Extract the corresponding covariate values seperately for urban/rural
+  if(!is.null(covariateData)){
+
   for (i in 1:length(covariateData)){
     #Extract covariate values from data rasters at dhsLocs
     assign(paste0("covariate_Urban", i), raster::extract(covariateData[[i]], coordsUrbanDegree, ncol=2))
     assign(paste0("covariate_Rural", i), raster::extract(covariateData[[i]], coordsRuralDegree, ncol=2))
 
   }
+  }
 
   nLoc_urban = length(coordsUrbanDegree@coords[,1])
   nLoc_rural = length(coordsRuralDegree@coords[,1])
 
-  desMatrixJittUrban = rep(1, nLoc_urban)
-  desMatrixJittRural = rep(1, nLoc_rural)
+  desMatrixJittUrban = as.matrix(rep(1, nLoc_urban))
+  desMatrixJittRural = as.matrix(rep(1, nLoc_rural))
+
+  if(!is.null(covariateData)){
 
   for(i in 1:length(covariateData)){
     desMatrixJittUrban = cbind(desMatrixJittUrban, get(paste0("covariate_Urban", i)))
     desMatrixJittRural = cbind(desMatrixJittRural, get(paste0("covariate_Rural", i)))
+  }
   }
 
   desMatrixJittUrban[is.nan(desMatrixJittUrban)] = 0
