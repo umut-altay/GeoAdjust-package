@@ -59,11 +59,16 @@ Prepares input data list for the model estimation with estimateModel()
 function.
 }
 \examples{
-\dontrun{
-inputData <- prepareInput(response = response, locObs = locObs,
-likelihood = likelihood, jScale = jScale,
-urban = urban, mesh.s = mesh.s, adminMap = adminMap,
-nSubAPerPoint = nSubAPerPoint, nSubRPerPoint = nSubRPerPoint,
-covariateData = covariateData)
+if(requireNamespace("INLA")){
+path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
+load(paste0(path1))
+load(paste0(path2))
+inputData <- prepareInput(response = list(ys = surveyData$ys, ns = surveyData$ns),
+locObs = cbind(surveyData$east, surveyData$north),
+likelihood = 1, jScale = 1,
+urban = surveyData$urbanRural, mesh.s = exampleMesh, adminMap = adm1,
+nSubAPerPoint = 10, nSubRPerPoint = 10,
+covariateData = NULL)
 }
 }

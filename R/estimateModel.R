@@ -14,11 +14,14 @@
 #' A matrix containing the sampled coefficient effect sizes and the random effect coefficients,
 #' A character string indicating the likelihood type in the model.
 #' @examples
-#' \dontrun{
-#' results <- estimateModel(data = data, nNodes = nNodes,
-#' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-#' range = 114))
-#' }
+#' path1 <- system.file("extdata", "exampleInputData.rda", package = "GeoAdjust")
+#' path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
+#' load(paste0(path1))
+#' load(paste0(path2))
+#' nNodes = exampleMesh[['n']]
+#' results <- estimateModel(data = exampleInputData, nNodes = nNodes,
+#' options = list(random = 1, covariates = 0), priors = list(beta = c(0,1),
+#' range = 114, USpatial = 1, alphaSpatial = 0.05))
 #' @export
 estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NULL, ...){
 
@@ -70,14 +73,16 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   flag1 = 1
   obj <- TMB::normalize(obj, flag="flag1", value = 0)
 
-  opt0 = stats::optim(par=obj$par, fn = obj$fn, gr = obj$gr,
-               method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1)),...)
+  opt0 = stats::optim(par=obj$par, fn = obj$fn, gr = obj$gr, ...,
+               method = c("BFGS"), control=list(parscale=c(.1, .1)), hessian = FALSE)
 
   par <- obj$env$last.par
   Qtest = obj$env$spHess(par, random = TRUE)
   #mu = c(par[1:nCov])
-  mu = par[names(par) != c("log_tau","log_kappa")]
-
+  idx1 = which(names(par)=="log_tau")
+  idx2 = which(names(par)=="log_kappa")
+  #mu = par[names(par) != c("log_tau","log_kappa")]
+  mu = par[-c(idx1, idx2)]
   log_tau = par[[nCov+1]]
   log_kappa = par[[nCov+2]]
 
@@ -102,27 +107,45 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   parnames <- c(names(mu))
 
   beta_draws<- t.draws[parnames == 'beta',]
-  intercept = beta_draws[1,]
 
+  if(is.null(dim(beta_draws))){
+    intercept = beta_draws
+  } else {
+  intercept = beta_draws[1,]
+}
+  if(nCov>1){
   npar = nCov-1
   parNames = rep(0, npar)
   for(i in 1:npar){
   parNames[i] = paste0("beta", i)
   assign(paste0("beta", i), beta_draws[i+1,])
   }
+  } else{
+    npar=0
+    parNames = NULL
+}
 
 
   CIlength = rep(0, npar+1)
   CIlength[1] = stats::quantile(intercept, probs = 0.975)- c(stats::quantile(intercept, probs = 0.025))
+  if(nCov>1){
   for(i in (1:npar)){
     b=paste0("beta", i)
   CIlength[i+1] = (stats::quantile(eval(parse(text = b)), probs = 0.975)- c(stats::quantile(eval(parse(text = b)), probs = 0.025)))
   }
+  }
+
+  if(is.null(parNames)){
+    res = data.frame(parameters = c("range", "sigma", "intercept"),
+                     estimates = c(range_estimate, sigma_estimate, beta_estimate),
+                     CI_Length = c("", "", CIlength))
+
+  } else {
 
   res = data.frame(parameters = c("range", "sigma", "intercept", parNames),
                     estimates = c(range_estimate, sigma_estimate, beta_estimate),
                    CI_Length = c("", "", CIlength))
-
+}
 
   est = list(res=res, obj=obj,draws =t.draws, likelihood = likelihood)
   class(est) = "res"

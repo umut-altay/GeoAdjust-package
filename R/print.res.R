@@ -2,10 +2,14 @@
 #'
 #' @param x A list containing the model estimation output, returned by
 #' estimateModel() function.
-#' @param ... ignored.
+#' @param ... not used
 #' @return Prints the model estimation results of class res as a table that
 #' shows the estimated model parameters and the corresponding 95% credible
 #' interval lengths.
+#' @examples
+#' path1 <- system.file("extdata", "exampleEstimationResults.rda", package = "GeoAdjust")
+#' load(paste0(path1))
+#' print.res(exampleEstimationResults)
 #' @export
 print.res <- function(x, ...){
   p1 = lengths(x[["res"]]) # number of rows
@@ -27,6 +31,7 @@ print.res <- function(x, ...){
   cat(paste0("beta0"), format(round(as.numeric(x[["res"]][["estimates"]][[3]]), 4), nsmall = 4),
       format(round(as.numeric(x[["res"]][["CI_Length"]][[3]]), 4), nsmall = 4), sep ="     ")
   cat("\n")
+  if(length(x[["res"]][["parameters"]])>3){
    for (i in 4:p1[[1]]){
   estimated = format(round(as.numeric(x[["res"]][["estimates"]][[i]]), 4), nsmall = 4)
   CI = format(round(as.numeric(x[["res"]][["CI_Length"]][[i]]), 4), nsmall = 4)
@@ -35,6 +40,9 @@ print.res <- function(x, ...){
   cat("\n")
   cat("----------------------------------\n")
    }
+  } else{
+    cat("----------------------------------\n")
+  }
 
 }
 

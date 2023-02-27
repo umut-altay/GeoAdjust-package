@@ -36,8 +36,17 @@ A matrix containing the mean, median,standard deviation and the lower and the up
 Predicts model outcomes at new locations.
 }
 \examples{
-\dontrun{
-predRes(obj = obj, predCoords = predCoords, draws = draws, nCov = nCov,
-mesh = mesh, covariateData = covariateData, flag = flag)
+if(requireNamespace("INLA")){
+path1 <- system.file("extdata", "exampleGrid.rda", package = "GeoAdjust")
+path2 <- system.file("extdata", "exampleEstimationResults.rda", package = "GeoAdjust")
+path3 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
+load(paste0(path1))
+load(paste0(path2))
+load(paste0(path3))
+pred = predRes(obj = exampleEstimationResults[["obj"]],
+predCoords = cbind(exampleGrid[["loc.pred"]]["east"],
+exampleGrid[["loc.pred"]]["north"]),
+draws = exampleEstimationResults[["draws"]], nCov = 1,
+mesh.s = exampleMesh, covariateData = NULL, flag = 1)
 }
 }

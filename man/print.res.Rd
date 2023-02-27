@@ -10,7 +10,7 @@
 \item{x}{A list containing the model estimation output, returned by
 estimateModel() function.}
 
-\item{...}{ignored.}
+\item{...}{not used}
 }
 \value{
 Prints the model estimation results of class res as a table that
@@ -19,4 +19,9 @@ interval lengths.
 }
 \description{
 Prints the output of estimateModel() function.
+}
+\examples{
+path1 <- system.file("extdata", "exampleEstimationResults.rda", package = "GeoAdjust")
+load(paste0(path1))
+print.res(exampleEstimationResults)
 }

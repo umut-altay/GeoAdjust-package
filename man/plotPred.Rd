@@ -39,8 +39,15 @@ Plots the predictions and the corresponding uncertainty (coefficient of
 variation), and saves them into the preferred directory as separate .pdf files.
 }
 \examples{
-\dontrun{
-plotPred(pred = predictions, predRaster = predRaster, admin0 = admin0,
-admin1 = admin1, admin2 = admin2, rmPoly = 160, locObs = locObs)
-}
+path1 <- system.file("extdata", "examplePredictionResults.rda",
+package = "GeoAdjust")
+path2 <- system.file("extdata", "exampleGrid.rda", package = "GeoAdjust")
+path3 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+load(paste0(path1))
+load(paste0(path2))
+load(paste0(path3))
+plotPred(pred = examplePredictionResults,
+predRaster = exampleGrid[["predRast"]], admin0 = adm0,
+admin1 = adm1, admin2 = NULL, rmPoly = NULL,
+locObs = data.frame(East = surveyData$east, North = surveyData$north))
 }

@@ -20,11 +20,12 @@ Matern covariance matrix.
 Creates a Matern covariance matrix.
 }
 \examples{
-\dontrun{
-data("clusterData")
-loc = cbind(clusterData$east, clusterData$north)
-space.range = 114
-space.sigma = 1
+if(requireNamespace("INLA")){
+path <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+load(paste0(path))
+loc <- cbind(surveyData$east, surveyData$north)
+space.range <- 114
+space.sigma <- 1
 covMat <- covMatern(dMat = as.matrix(dist(loc)),
 range = space.range, stdDev = space.sigma)
 }

@@ -453,7 +453,11 @@ updateWeightsByAdminArea = function(coords,
                                                       nSubRPerPoint=nSubRPerPoint)
 
   # get admin areas associated with coordinates
+  if(is.null(nrow(coords))){
+  coordsLonLat = convertKMToDeg(cbind(coords[1], coords[2]))
+  } else{
   coordsLonLat = convertKMToDeg(coords)
+  }
   spCooordsLonLat = sp::SpatialPoints(coordsLonLat, proj4string=adminMap@proj4string, bbox = NULL)
   out = sp::over(spCooordsLonLat, adminMap, returnList = FALSE)
   adminNames = out$NAME_1
@@ -468,6 +472,10 @@ updateWeightsByAdminArea = function(coords,
   wsRural = matrix(nrow=sum(!urbanVals), ncol=sum(sapply(integrationPointsRural$pts, function(x) {nrow(x)})))
   iUrban = 1
   iRural = 1
+
+  if(is.null(nrow(coords))){
+  coords = cbind(coords[1], coords[2])
+  }
   for(i in 1:nrow(coords)) {
     # time1 = proc.time()[3]
     theseCoords = matrix(coords[i,], nrow=1)
