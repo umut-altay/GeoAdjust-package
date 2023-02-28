@@ -3,8 +3,8 @@
 #' @param loc A two column matrix of coordinates (The first column is longitude and the second column is latitude).
 #' @return A two column matrix of coordinates in Mollweide (https://pubs.usgs.gov/pp/1395/report.pdf) coordinate system.
 #' @examples
-#' path <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
-#' load(paste0(path))
+#' path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+#' load(path1)
 #' locDegree <- cbind(surveyData$long, surveyData$lat)
 #' locMoll <- convertDegToMollweide(loc = locDegree)
 #' head(locMoll)

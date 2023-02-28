@@ -21,8 +21,8 @@ Creates a Matern covariance matrix.
 }
 \examples{
 if(requireNamespace("INLA")){
-path <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
-load(paste0(path))
+path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+load(path1)
 loc <- cbind(surveyData$east, surveyData$north)
 space.range <- 114
 space.sigma <- 1

@@ -19,6 +19,6 @@ Creates a grid of locations within the bounding box of the national borders of a
 }
 \examples{
 path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
-load(paste0(path1))
+load(path1)
 grid <- gridCountry(admin0 = adm0, res = 5)
 }

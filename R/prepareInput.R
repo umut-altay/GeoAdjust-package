@@ -28,8 +28,8 @@
 #' if(requireNamespace("INLA")){
 #' path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 #' path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
-#' load(paste0(path1))
-#' load(paste0(path2))
+#' load(path1)
+#' load(path2)
 #' inputData <- prepareInput(response = list(ys = surveyData$ys, ns = surveyData$ns),
 #' locObs = cbind(surveyData$east, surveyData$north),
 #' likelihood = 1, jScale = 1,

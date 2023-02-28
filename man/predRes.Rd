@@ -37,16 +37,20 @@ Predicts model outcomes at new locations.
 }
 \examples{
 if(requireNamespace("INLA")){
-path1 <- system.file("extdata", "exampleGrid.rda", package = "GeoAdjust")
-path2 <- system.file("extdata", "exampleEstimationResults.rda", package = "GeoAdjust")
-path3 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
-load(paste0(path1))
-load(paste0(path2))
-load(paste0(path3))
-pred = predRes(obj = exampleEstimationResults[["obj"]],
+path1 <- system.file("extdata", "exampleInputData.rda", package = "GeoAdjust")
+path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
+path3 <- system.file("extdata", "exampleGrid.rda", package = "GeoAdjust")
+load(path1)
+load(path2)
+load(path3)
+nNodes = exampleMesh[['n']]
+results <- estimateModel(data = exampleInputData, nNodes = nNodes,
+options = list(random = 1, covariates = 0), priors = list(beta = c(0,1),
+range = 114, USpatial = 1, alphaSpatial = 0.05))
+pred = predRes(obj = results[["obj"]],
 predCoords = cbind(exampleGrid[["loc.pred"]]["east"],
 exampleGrid[["loc.pred"]]["north"]),
-draws = exampleEstimationResults[["draws"]], nCov = 1,
+draws = results[["draws"]], nCov = 1,
 mesh.s = exampleMesh, covariateData = NULL, flag = 1)
 }
 }

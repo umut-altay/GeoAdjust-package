@@ -21,8 +21,8 @@ Converts a set of coordinates in degrees into a new set of coordinates in
 The Universal Transverse Mercator (UTM) zone:37 coordinate system
 }
 \examples{
-path <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
-load(paste0(path))
+path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+load(path1)
 locDegree <- cbind(surveyData$long, surveyData$lat)
 locKM <- convertDegToKM(loc = locDegree)
 head(locKM)
