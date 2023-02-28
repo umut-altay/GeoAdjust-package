@@ -21,6 +21,7 @@
 #' results <- estimateModel(data = exampleInputData, nNodes = nNodes,
 #' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
 #' range = 114, USpatial = 1, alphaSpatial = 0.05))
+#' @importFrom stats optim
 #' @export
 estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NULL){
 
@@ -32,7 +33,7 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   USpatial  = priors[["USpatial"]]
   alphaSpatial  = priors[["alphaSpatial"]]
 
-  matern_pri = c(rangeMaternPri, 0.5, USpatial = USpatial , alphaSpatial = alphaSpatial)
+  matern_pri = c(rangeMaternPri, 0.5, USpatial , alphaSpatial)
 
   data[["flagRandomField"]] = flagRandomField
   data[["flagCovariates"]] = flagCovariates
@@ -72,7 +73,7 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   flag1 = 1
   obj <- TMB::normalize(obj, flag="flag1", value = 0)
 
-  opt0 = optim(par=obj$par, fn = obj$fn, gr = obj$gr,
+  opt0 = stats::optim(par=obj$par, fn = obj$fn, gr = obj$gr,
                method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1)))
 
   par <- obj$env$last.par
