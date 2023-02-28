@@ -4,7 +4,7 @@
 \alias{estimateModel}
 \title{Estimates model parameters}
 \usage{
-estimateModel(data = NULL, nNodes = NULL, options = NULL, priors = NULL, ...)
+estimateModel(data = NULL, nNodes = NULL, options = NULL, priors = NULL)
 }
 \arguments{
 \item{data}{A data input list that is created by prepareInput() function.}
@@ -17,8 +17,6 @@ Values of 1 and 0 turn the accounting for jittering in these components on and o
 \item{priors}{A list containing two components, namely "beta" and "range". Beta is a vector of two elements and passes the parameters of the Gaussian prior that will be assigned
 to the covariates (including the intercept). The first element of it is the mean and the second one is the
 standard deviation of Gaussian prior. Range is a value representing the median range in kilometers, which will be used for constructing the PC (Penalized-complexity) priors.}
-
-\item{...}{Any other arguments of optim() function.}
 }
 \value{
 Model estimation results of class called res. The output consists of four elements:
@@ -33,8 +31,8 @@ Estimates model parameters
 \examples{
 path1 <- system.file("extdata", "exampleInputData.rda", package = "GeoAdjust")
 path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
-load(paste0(path1))
-load(paste0(path2))
+load(path1)
+load(path2)
 nNodes = exampleMesh[['n']]
 results <- estimateModel(data = exampleInputData, nNodes = nNodes,
 options = list(random = 1, covariates = 0), priors = list(beta = c(0,1),

@@ -3,8 +3,8 @@
 #' @param loc A two column matrix of coordinates in The Universal Transverse Mercator (UTM) zone:37 coordinate system (https://www.usgs.gov/faqs/what-does-term-utm-mean-utm-better-or-more-accurate-latitudelongitude).
 #' @return A two column matrix of coordinates in degrees (the first column is longitude and the second column is latitude).
 #' @examples
-#' path <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
-#' load(paste0(path))
+#' path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+#' load(path1)
 #' locKM <- cbind(surveyData$east, surveyData$north)
 #' locDegree <- convertKMToDeg(loc = locKM)
 #' head(locDegree)

@@ -8,8 +8,8 @@
 #' 37 coordinate system (https://www.usgs.gov/faqs/what-does-term-utm-mean-utm-
 #' better-or-more-accurate-latitudelongitude).
 #' @examples
-#' path <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
-#' load(paste0(path))
+#' path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+#' load(path1)
 #' locDegree <- cbind(surveyData$long, surveyData$lat)
 #' locKM <- convertDegToKM(loc = locDegree)
 #' head(locKM)

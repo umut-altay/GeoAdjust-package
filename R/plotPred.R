@@ -11,13 +11,12 @@
 #' @return Plots two ggplot objects. One of them (pred.) shows the median predictions and the other one (cv%) shows the
 #' corresponding coefficient of variations across the country, respectively.
 #' @examples
-#' path1 <- system.file("extdata", "examplePredictionResults.rda",
-#' package = "GeoAdjust")
+#' path1 <- system.file("extdata", "examplePredictionResults.rda", package = "GeoAdjust")
 #' path2 <- system.file("extdata", "exampleGrid.rda", package = "GeoAdjust")
 #' path3 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
-#' load(paste0(path1))
-#' load(paste0(path2))
-#' load(paste0(path3))
+#' load(path1)
+#' load(path2)
+#' load(path3)
 #' plotPred(pred = examplePredictionResults,
 #' predRaster = exampleGrid[["predRast"]], admin0 = adm0,
 #' admin1 = adm1, admin2 = NULL, rmPoly = NULL,

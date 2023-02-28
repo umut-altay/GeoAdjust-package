@@ -16,8 +16,8 @@ A two column matrix of coordinates in Mollweide (https://pubs.usgs.gov/pp/1395/r
 Converts a set of coordinates in degrees into a new set of coordinates in Mollweide coordinate system.
 }
 \examples{
-path <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
-load(paste0(path))
+path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+load(path1)
 locDegree <- cbind(surveyData$long, surveyData$lat)
 locMoll <- convertDegToMollweide(loc = locDegree)
 head(locMoll)

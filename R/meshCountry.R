@@ -10,7 +10,7 @@
 #' @examples
 #' if(requireNamespace("INLA")){
 #' path1 <- system.file("extdata", "adm0UTM37.rda", package = "GeoAdjust")
-#' load(paste0(path1))
+#' load(path1)
 #' mesh.s <- meshCountry(admin0 = adm0UTM37, max.edge = c(25, 50), offset = -.08)
 #' }
 #' @export
