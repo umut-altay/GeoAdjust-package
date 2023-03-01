@@ -134,7 +134,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR(log_nug_std);
 
   Type nugStd = 0.0;
-  if(log_nug_std.size()>0){
+  if(log_nug_std.size() > 0){
     nugStd = exp(log_nug_std[0]);
   }
 
