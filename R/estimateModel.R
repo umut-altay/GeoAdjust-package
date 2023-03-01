@@ -40,6 +40,9 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   data[["beta_pri"]] = beta_pri
   data[["matern_pri"]] = matern_pri
 
+
+
+
   if (data[["flag2"]] ==0){
     likelihood = "Gaussian"
   } else if (data[["flag2"]] ==1){
@@ -51,13 +54,25 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
 
   nCov = length(data[["X_betaUrban"]][1,]) # number of covariates in the model, including the intercept
 
-  tmb_params <- list(beta=rep(0, nCov),
-                     #log_tau = 5, # Log tau (i.e. log spatial precision, Epsilon)
-                     log_tau = 1.87, # Log tau (i.e. log spatial precision, Epsilon)
-                     log_kappa = -3.69, # SPDE parameter related to the range
-                     Epsilon_s = rep(0, nNodes)#,  RE on mesh vertices
-                     #log_nug_std = log(sqrt(0.1))
-  )
+
+  if(is.null(data[["log_nug_std"]])){
+    tmb_params <- list(beta=rep(0, nCov),
+                       #log_tau = 5, # Log tau (i.e. log spatial precision, Epsilon)
+                       log_tau = 1.87, # Log tau (i.e. log spatial precision, Epsilon)
+                       log_kappa = -3.69, # SPDE parameter related to the range
+                       Epsilon_s = rep(0, nNodes),#,  RE on mesh vertices
+                       log_nug_std = c()
+                       )
+  }else{
+    log_nug_std = data[["log_nug_std"]]
+    tmb_params <- list(beta=rep(0, nCov),
+                       #log_tau = 5, # Log tau (i.e. log spatial precision, Epsilon)
+                       log_tau = 1.87, # Log tau (i.e. log spatial precision, Epsilon)
+                       log_kappa = -3.69, # SPDE parameter related to the range
+                       Epsilon_s = rep(0, nNodes),#,  RE on mesh vertices
+                       log_nug_std = log_nug_std
+    )
+  }
 
   # random effects
   rand_effs <- c("Epsilon_s", "beta")

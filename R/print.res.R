@@ -15,7 +15,7 @@
 #' results <- estimateModel(data = exampleInputData, nNodes = nNodes,
 #' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
 #' range = 114, USpatial = 1, alphaSpatial = 0.05))
-#' print.res(results)
+#' print(results)
 #' @export
 print.res <- function(x, ...){
   p1 = lengths(x[["res"]]) # number of rows
