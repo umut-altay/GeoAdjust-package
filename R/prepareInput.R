@@ -23,6 +23,9 @@
 #' @param nSubRPerPoint A value representing the number of unique
 #' sub-integration point radii per integration point.
 #' @param covariateData A list containing the covariate rasters.
+#' @param log_nug_std A value representing the log of nugget standard deviation.
+#' This value is needed when the likelihood is Gaussian. Otherwise can be set to
+#' NULL.
 #' @return A list containing the input for estimateModel() function.
 #' @examples
 #' if(requireNamespace("INLA")){
@@ -35,13 +38,13 @@
 #' likelihood = 1, jScale = 1,
 #' urban = surveyData$urbanRural, mesh.s = exampleMesh, adminMap = adm1,
 #' nSubAPerPoint = 10, nSubRPerPoint = 10,
-#' covariateData = NULL)
+#' covariateData = NULL, log_nug_std = NULL)
 #' }
 #' @export
 prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
                          urban=NULL, mesh.s=NULL,
                          adminMap=NULL, nSubAPerPoint=10, nSubRPerPoint=10,
-                         covariateData=NULL){
+                         covariateData=NULL, log_nug_std =NULL){
 
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
     stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
@@ -184,6 +187,15 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
   AUrban = out$AUrban
   ARural = out$ARural
   #
+
+  if(is.null(log_nug_std)){
+    log_nug_std = c()
+  }else{
+    log_nug_std = log_nug_std
+  }
+
+
+
   # Compile inputs for TMB
   data <- list(num_iUrban = length(ysUrban),  # Total number of urban observations
                num_iRural = length(ysRural),  # Total number of rural observations
@@ -207,7 +219,8 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
                            1), ## if 1, run adreport
                # normalization flag.
                flag1 = 1,
-               flag2 = flag2 #(0/1 for Gaussian/Binomial)
+               flag2 = flag2, #(0/1 for Gaussian/Binomial)
+               log_nug_std = log_nug_std
   )
 
   return(data)

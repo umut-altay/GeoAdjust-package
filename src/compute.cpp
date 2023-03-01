@@ -121,16 +121,22 @@ Type objective_function<Type>::operator() ()
   Type matern_par_c = matern_pri[2]; // field sd limit: sigma0
   Type matern_par_d = matern_pri[3]; // field sd prob:  alpha_sigma
 
+
   // Fixed effects
   PARAMETER_VECTOR( beta );
   // Log of INLA tau param (precision of space covariance matrix)
   PARAMETER( log_tau );
   // Log of INLA kappa (related to spatial correlation and range)
   PARAMETER( log_kappa );
-  // Log of nugget standard deviation
-  //PARAMETER( log_nug_std );
   // Random effects for each spatial mesh vertex
   PARAMETER_VECTOR( Epsilon_s );
+  // nugget standard deviation
+  PARAMETER_VECTOR(log_nug_std);
+
+  Type nugStd = 0.0;
+  if(log_nug_std.size()>0){
+    nugStd = exp(log_nug_std[0]);
+  }
 
   // Make spatial precision matrix
   SparseMatrix<Type> Q_ss = spde_Q(log_kappa, log_tau, M0, M1, M2);
@@ -180,12 +186,15 @@ Type objective_function<Type>::operator() ()
                      matern_par_a, matern_par_b, matern_par_c, matern_par_d,
                      true);
 
-  jnll -= dnorm(beta[0], beta_pri[0], beta_pri[1], true); // N(mean, sd)
-  jnll -= dnorm(beta[1], beta_pri[0], beta_pri[1], true); // N(mean, sd)
-  jnll -= dnorm(beta[2], beta_pri[0], beta_pri[1], true); // N(mean, sd)
-  jnll -= dnorm(beta[3], beta_pri[0], beta_pri[1], true); // N(mean, sd)
-  jnll -= dnorm(beta[4], beta_pri[0], beta_pri[1], true); // N(mean, sd)
-  jnll -= dnorm(beta[5], beta_pri[0], beta_pri[1], true); // N(mean, sd)
+  if(beta.size() == 1){
+    jnll -= dnorm(beta[0], beta_pri[0], beta_pri[1], true); // N(mean, sd)
+  }else if(beta.size() > 1){
+    for (int i = 0; i < beta.size(); i++){
+    jnll -= dnorm(beta[i+1], beta_pri[0], beta_pri[1], true); // N(mean, sd)
+    }
+  }
+
+
 
 
   // contribution to the likelihood from:
@@ -200,7 +209,6 @@ Type objective_function<Type>::operator() ()
     jnll += GMRF(Q_ss)(Epsilon_s);
   }
 
-
   // jnll contribution from each datapoint i
   int thisIndex;
   Type thisLatentField;
@@ -212,8 +220,7 @@ Type objective_function<Type>::operator() ()
     for (int j = 0; j < n_integrationPointsUrban; j++){
       thisIndex = i + num_iUrban * j;
 
-      // JITTERING IS ACCOUNTED FOR: ONLY IN RANDOM FIELD
-      // ONLY IN RANDOM FIELD
+      // JITTERING IS ACCOUNTED FOR: URBAN
       thisLatentField = 0;
 
       if ( flagCovariates == 1){
@@ -232,17 +239,18 @@ Type objective_function<Type>::operator() ()
         // get integration weight
         thisWeight = wUrban(i,j);
 
-        //if ( flag2 ==0 ){
+        if ( flag2 ==0 ){
         // Use Gaussian
-        //tmpW(j) = thisWeight;
-        //tmpUrb(j) = dnorm(y_iUrban(i), thisLatentField, nugStd, true);
-        //}else{
+        tmpW(j) = thisWeight;
+        tmpUrb(j) = dnorm(y_iUrban(i), thisLatentField, nugStd, true);
+        }else if( flag2 ==1 ){
         // Use dbinom_robust function, which takes the logit probability
         tmpW(j) = thisWeight;
         tmpUrb(j) = dbinom_robust( y_iUrban(i), n_iUrban(i), thisLatentField, true);
-        //}
-
-
+        }else if( flag2 ==2 ){
+        tmpW(j) = thisWeight;
+        tmpUrb(j) = dpois(y_iUrban(i), exp(thisLatentField), true);
+        }
       } // !isNA
 
 
@@ -263,8 +271,7 @@ Type objective_function<Type>::operator() ()
     for (int j = 0; j < n_integrationPointsRural; j++){
       thisIndex = i + num_iRural * j;
 
-      // JITTERING IS ACCOUNTED FOR: ONLY IN RANDOM FIELD
-      // ONLY IN RANDOM FIELD
+      // JITTERING IS ACCOUNTED FOR: RURAL
       thisLatentField = 0;
 
       if ( flagCovariates == 1){
@@ -283,19 +290,22 @@ Type objective_function<Type>::operator() ()
         // get integration weight
         thisWeight = wRural(i,j);
 
-        // if ( flag2 == 0 ){
+        if ( flag2 == 0 ){
         // Use Gaussian
-        // tmpW(j) = thisWeight;
-        // tmpRur(j) = dnorm(y_iRural(i), thisLatentField, nugStd, true);
-        // }else{
+        tmpW(j) = thisWeight;
+        tmpRur(j) = dnorm(y_iRural(i), thisLatentField, nugStd, true);
+        }else if( flag2 == 1){
         // Use dbinom_robust function, which takes the logit probability
         tmpW(j) = thisWeight;
         tmpRur(j) = dbinom_robust( y_iRural(i), n_iRural(i), thisLatentField, true);
-        //}
-
+        }else if( flag2 == 2){
+        tmpW(j) = thisWeight;
+        tmpRur(j) = dpois(y_iRural(i), exp(thisLatentField), true);
       }
+    }// !isNA
 
     }
+
     if(!isNA(y_iRural(i))){
       thislik = robustMix(tmpW, tmpRur, n_integrationPointsRural);
     }else{

@@ -15,7 +15,8 @@ prepareInput(
   adminMap = NULL,
   nSubAPerPoint = 10,
   nSubRPerPoint = 10,
-  covariateData = NULL
+  covariateData = NULL,
+  log_nug_std = NULL
 )
 }
 \arguments{
@@ -50,6 +51,10 @@ sub-integration point angles per integration point.}
 sub-integration point radii per integration point.}
 
 \item{covariateData}{A list containing the covariate rasters.}
+
+\item{log_nug_std}{A value representing the log of nugget standard deviation.
+This value is needed when the likelihood is Gaussian. Otherwise can be set to
+NULL.}
 }
 \value{
 A list containing the input for estimateModel() function.
@@ -69,6 +74,6 @@ locObs = cbind(surveyData$east, surveyData$north),
 likelihood = 1, jScale = 1,
 urban = surveyData$urbanRural, mesh.s = exampleMesh, adminMap = adm1,
 nSubAPerPoint = 10, nSubRPerPoint = 10,
-covariateData = NULL)
+covariateData = NULL, log_nug_std = NULL)
 }
 }
