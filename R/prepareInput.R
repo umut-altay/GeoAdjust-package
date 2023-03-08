@@ -63,13 +63,16 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
   # number of observed locations
   nLoc = length(locObs[,1])
 
-  #response variable Gaussian/Binomial
+  #response variable Gaussian/Binomial/Poisson
   if (flag2 == 0){
     ys = response[["ys"]]
     ns = rep(1, nLoc)
-  } else {
+  } else if (flag2 == 1){
     ys = response[["ys"]]
     ns = response[["ns"]]
+  } else{
+    ys = response[["ys"]]
+    ns = rep(1, nLoc)
   }
   #
   #
@@ -192,6 +195,7 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
     log_nug_std = c()
   }else{
     log_nug_std = log_nug_std
+
   }
 
 

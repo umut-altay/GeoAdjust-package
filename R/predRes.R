@@ -47,9 +47,16 @@ predRes = function(obj = NULL, predCoords  = NULL, draws  = NULL, nCov  = NULL, 
   A.pred = INLA::inla.spde.make.A(mesh = mesh.s, loc = predCoords)
 
   par <- obj$env$last.par
-  idx1 = which(names(par)=="log_tau")
-  idx2 = which(names(par)=="log_kappa")
-  mu = par[-c(idx1, idx2)]
+
+  idx1 = which(names(par)=="theta")
+  if(flag ==0){
+    idx2 = which(names(par)=="log_nug_std")
+    idx3 = which(names(par)=="hp")
+    mu = par[-c(idx1, idx2, idx3)]
+  }else{
+    mu = par[-c(idx1)]
+  }
+
   parnames <- c(names(mu))
   epsilon_draws  <- t.draws[parnames == 'Epsilon_s',]
 

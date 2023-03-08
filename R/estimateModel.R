@@ -2,6 +2,9 @@
 #'
 #' @param data A data input list that is created by prepareInput() function.
 #' @param nNodes number of mesh nodes.
+#' @param nugg_hyper A positive value representing the hyperparameter for penalized
+#' complexity prior on the logarithm of nugget standard deviation. This value is
+#' needed when the likelihood is Gaussian. Otherwise can be set to NULL.
 #' @param options A list containing two components, namely, random and covariates, representing the spatial random field and covariates.
 #' Values of 1 and 0 turn the accounting for jittering in these components on and off.
 #' @param priors A list containing two components, namely "beta" and "range". Beta is a vector of two elements and passes the parameters of the Gaussian prior that will be assigned
@@ -18,12 +21,12 @@
 #' load(path1)
 #' load(path2)
 #' nNodes = exampleMesh[['n']]
-#' results <- estimateModel(data = exampleInputData, nNodes = nNodes,
-#' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-#' range = 114, USpatial = 1, alphaSpatial = 0.05))
+#'  results <- estimateModel(data = inputGaussian, nNodes = nNodes,
+  options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
+  range = 114, USpatial = 1, alphaSpatial = 0.05, nugg_hyper = sqrt(0.1)))
 #' @importFrom stats optim
 #' @export
-estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NULL){
+estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NULL, nugg_hyper = NULL){
 
   flagRandomField = options[["random"]]
   flagCovariates = options[["covariates"]]
@@ -35,13 +38,17 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
 
   matern_pri = c(rangeMaternPri, 0.5, USpatial , alphaSpatial)
 
+  nugg_hyper = c(0, priors[["nugg_hyper"]]) # purpose of zero is only to pass nugg_hyper
+                                # into C++ within a vector.
+
   data[["flagRandomField"]] = flagRandomField
   data[["flagCovariates"]] = flagCovariates
   data[["beta_pri"]] = beta_pri
   data[["matern_pri"]] = matern_pri
 
-
-
+  if (data[["flag2"]] ==0){
+  data[["nugg_hyper"]] = nugg_hyper
+  }
 
   if (data[["flag2"]] ==0){
     likelihood = "Gaussian"
@@ -54,23 +61,19 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
 
   nCov = length(data[["X_betaUrban"]][1,]) # number of covariates in the model, including the intercept
 
+  log_tau = 1.87 # Log tau (i.e. log spatial precision, Epsilon)
+  log_kappa = -3.69 # SPDE parameter related to the range
 
   if(is.null(data[["log_nug_std"]])){
     tmb_params <- list(beta=rep(0, nCov),
-                       #log_tau = 5, # Log tau (i.e. log spatial precision, Epsilon)
-                       log_tau = 1.87, # Log tau (i.e. log spatial precision, Epsilon)
-                       log_kappa = -3.69, # SPDE parameter related to the range
                        Epsilon_s = rep(0, nNodes),#,  RE on mesh vertices
-                       log_nug_std = c()
+                       theta = c(log_kappa,log_tau)
                        )
   }else{
     log_nug_std = data[["log_nug_std"]]
     tmb_params <- list(beta=rep(0, nCov),
-                       #log_tau = 5, # Log tau (i.e. log spatial precision, Epsilon)
-                       log_tau = 1.87, # Log tau (i.e. log spatial precision, Epsilon)
-                       log_kappa = -3.69, # SPDE parameter related to the range
                        Epsilon_s = rep(0, nNodes),#,  RE on mesh vertices
-                       log_nug_std = log_nug_std
+                       theta = c(log_kappa, log_tau, log_nug_std)
     )
   }
 
@@ -87,24 +90,37 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
 
   flag1 = 1
   obj <- TMB::normalize(obj, flag="flag1", value = 0)
-
+if(data[["flag2"]] ==0){
   opt0 = stats::optim(par=obj$par, fn = obj$fn, gr = obj$gr,
-               method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1)))
+                      method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1, .1)))
+}else{
+  opt0 = stats::optim(par=obj$par, fn = obj$fn, gr = obj$gr,
+                      method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1)))
+}
+
 
   par <- obj$env$last.par
   Qtest = obj$env$spHess(par, random = TRUE)
   #mu = c(par[1:nCov])
-  idx1 = which(names(par)=="log_tau")
-  idx2 = which(names(par)=="log_kappa")
-  #mu = par[names(par) != c("log_tau","log_kappa")]
+  idx1 = which(names(par)=="theta")
+
+  if(likelihood =="Gaussian"){
+  idx2 = which(names(par)=="log_nug_std")
   mu = par[-c(idx1, idx2)]
+  }else{
+    mu = par[-c(idx1)]
+  }
+
   log_tau = par[[nCov+1]]
   log_kappa = par[[nCov+2]]
 
+  if(likelihood =="Gaussian"){
+  nugStd_estimate = par[[nCov+3]]
+  }
+
   beta_estimate = c(par[1:nCov])
   range_estimate = sqrt(8.0)/exp(log_kappa)
-  sigma_estimate = 1.0 / sqrt(4.0 * 3.14159265359 *
-                          exp(2.0 * log_tau) * exp(2.0 * log_kappa))
+  sigma_estimate = 1.0 / sqrt(4.0*3.14159265359*exp(2.0*log_tau)*exp(2.0*log_kappa))
 
   #Uncertainty (95% credible intervals)
   # Simulate draws
@@ -150,16 +166,33 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   }
   }
 
+
   if(is.null(parNames)){
+    if(likelihood =="Gaussian"){
+      res = data.frame(parameters = c("range", "sigma", "intercept", "nuggetSd"),
+                       estimates = c(range_estimate, sigma_estimate, beta_estimate, nugStd_estimate),
+                       CI_Length = c("", "", CIlength, ""))
+
+    }else{
     res = data.frame(parameters = c("range", "sigma", "intercept"),
                      estimates = c(range_estimate, sigma_estimate, beta_estimate),
                      CI_Length = c("", "", CIlength))
+    }
+
+
 
   } else {
+    if(likelihood =="Gaussian"){
+      res = data.frame(parameters = c("range", "sigma", "intercept", parNames, "nuggetSd"),
+                       estimates = c(range_estimate, sigma_estimate, beta_estimate, nugStd_estimate),
+                       CI_Length = c("", "", CIlength))
+
+    }else{
 
   res = data.frame(parameters = c("range", "sigma", "intercept", parNames),
                     estimates = c(range_estimate, sigma_estimate, beta_estimate),
                    CI_Length = c("", "", CIlength))
+    }
 }
 
   est = list(res=res, obj=obj,draws =t.draws, likelihood = likelihood)
