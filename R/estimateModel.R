@@ -17,10 +17,10 @@
 #' path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
 #' load(path1)
 #' load(path2)
-#' nNodes = exampleMesh[['n']]
-#' results <- estimateModel(data = exampleInputData, nNodes = nNodes,
-#' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-#' range = 114, USpatial = 1, alphaSpatial = 0.05))
+#' nNodes = mesh.s[['n']]
+ results <- estimateModel(data = inputDataGauss, nNodes = nNodes,
+ options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
+ range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05))
 #' @importFrom stats optim
 #' @export
 estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NULL){
@@ -32,15 +32,18 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   rangeMaternPri = priors[["range"]]
   USpatial  = priors[["USpatial"]]
   alphaSpatial  = priors[["alphaSpatial"]]
+  nugStd = priors[["UNugget"]]
+  alphaNug = priors[["alphaNug"]]
 
   matern_pri = c(rangeMaternPri, 0.5, USpatial , alphaSpatial)
+  nug_pri = c(nugStd, alphaNug)
+
 
   data[["flagRandomField"]] = flagRandomField
   data[["flagCovariates"]] = flagCovariates
   data[["beta_pri"]] = beta_pri
   data[["matern_pri"]] = matern_pri
-
-
+  data[["nug_pri"]] = nug_pri
 
 
   if (data[["flag2"]] ==0){
@@ -54,24 +57,19 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
 
   nCov = length(data[["X_betaUrban"]][1,]) # number of covariates in the model, including the intercept
 
+  log_tau = 1.87 # Log tau (i.e. log spatial precision, Epsilon)
+  log_kappa = -3.69 # SPDE parameter related to the range
 
-  if(is.null(data[["log_nug_std"]])){
+  if (data[["flag2"]] != 0){
     tmb_params <- list(beta=rep(0, nCov),
-                       #log_tau = 5, # Log tau (i.e. log spatial precision, Epsilon)
-                       log_tau = 1.87, # Log tau (i.e. log spatial precision, Epsilon)
-                       log_kappa = -3.69, # SPDE parameter related to the range
                        Epsilon_s = rep(0, nNodes),#,  RE on mesh vertices
-                       log_nug_std = c()
+                       theta = c(log_kappa, log_tau)
                        )
   }else{
-    log_nug_std = data[["log_nug_std"]]
+    log_nug_std_initial = -4
     tmb_params <- list(beta=rep(0, nCov),
-                       #log_tau = 5, # Log tau (i.e. log spatial precision, Epsilon)
-                       log_tau = 1.87, # Log tau (i.e. log spatial precision, Epsilon)
-                       log_kappa = -3.69, # SPDE parameter related to the range
                        Epsilon_s = rep(0, nNodes),#,  RE on mesh vertices
-                       log_nug_std = log_nug_std
-    )
+                       theta = c(log_kappa, log_tau, log_nug_std_initial))
   }
 
   # random effects
@@ -87,26 +85,33 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
 
   flag1 = 1
   obj <- TMB::normalize(obj, flag="flag1", value = 0)
-
-  opt0 = stats::optim(par=obj$par, fn = obj$fn, gr = obj$gr,
-               method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1)))
+  if(data[["flag2"]] == 0){
+    opt0 = stats::optim(par=obj$par, fn = obj$fn, gr = obj$gr,
+                        method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1, .1)))
+  }else{
+    opt0 = stats::optim(par=obj$par, fn = obj$fn, gr = obj$gr,
+                        method = c("BFGS"), hessian = FALSE, control=list(parscale=c(.1, .1)))
+  }
 
   par <- obj$env$last.par
   Qtest = obj$env$spHess(par, random = TRUE)
-  #mu = c(par[1:nCov])
-  idx1 = which(names(par)=="log_tau")
-  idx2 = which(names(par)=="log_kappa")
-  #mu = par[names(par) != c("log_tau","log_kappa")]
-  mu = par[-c(idx1, idx2)]
-  log_tau = par[[nCov+1]]
-  log_kappa = par[[nCov+2]]
+
+  idx1 = which(names(par)=="theta")
+
+  mu = par[-c(idx1)]
+
+  log_kappa = par[[nCov+1]]
+  log_tau   = par[[nCov+2]]
+
+
+  if(likelihood =="Gaussian"){
+    logNugStd_estimate = par[[nCov+3]]
+  }
 
   beta_estimate = c(par[1:nCov])
   range_estimate = sqrt(8.0)/exp(log_kappa)
-  sigma_estimate = 1.0 / sqrt(4.0 * 3.14159265359 *
-                          exp(2.0 * log_tau) * exp(2.0 * log_kappa))
+  sigma_estimate = 1.0 / sqrt(4.0*3.14159265359*exp(2.0*log_tau)*exp(2.0*log_kappa))
 
-  #Uncertainty (95% credible intervals)
   # Simulate draws
   rmvnorm_prec <- function(mu, chol_prec, n.sims) {
     z <- matrix(stats::rnorm(length(mu) * n.sims), ncol=n.sims)
@@ -150,16 +155,33 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   }
   }
 
+
   if(is.null(parNames)){
+    if(likelihood =="Gaussian"){
+      res = data.frame(parameters = c("range", "sigma", "nuggetSd", "intercept"),
+                       estimates = c(range_estimate, sigma_estimate, exp(logNugStd_estimate), beta_estimate),
+                       CI_Length = c("", "", "", CIlength))
+
+    }else{
     res = data.frame(parameters = c("range", "sigma", "intercept"),
                      estimates = c(range_estimate, sigma_estimate, beta_estimate),
                      CI_Length = c("", "", CIlength))
+    }
+
+
 
   } else {
+    if(likelihood =="Gaussian"){
+      res = data.frame(parameters = c("range", "sigma", "nuggetSd", "intercept", parNames),
+                       estimates = c(range_estimate, sigma_estimate, exp(logNugStd_estimate), beta_estimate),
+                       CI_Length = c("", "", "", CIlength))
+
+    }else{
 
   res = data.frame(parameters = c("range", "sigma", "intercept", parNames),
                     estimates = c(range_estimate, sigma_estimate, beta_estimate),
                    CI_Length = c("", "", CIlength))
+    }
 }
 
   est = list(res=res, obj=obj,draws =t.draws, likelihood = likelihood)

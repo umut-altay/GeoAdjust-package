@@ -23,9 +23,6 @@
 #' @param nSubRPerPoint A value representing the number of unique
 #' sub-integration point radii per integration point.
 #' @param covariateData A list containing the covariate rasters.
-#' @param log_nug_std A value representing the log of nugget standard deviation.
-#' This value is needed when the likelihood is Gaussian. Otherwise can be set to
-#' NULL.
 #' @return A list containing the input for estimateModel() function.
 #' @examples
 #' if(requireNamespace("INLA")){
@@ -33,18 +30,18 @@
 #' path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
 #' load(path1)
 #' load(path2)
-#' inputData <- prepareInput(response = list(ys = surveyData$ys, ns = surveyData$ns),
-#' locObs = cbind(surveyData$east, surveyData$north),
-#' likelihood = 1, jScale = 1,
-#' urban = surveyData$urbanRural, mesh.s = exampleMesh, adminMap = adm1,
-#' nSubAPerPoint = 10, nSubRPerPoint = 10,
-#' covariateData = NULL, log_nug_std = NULL)
+   inputDataGauss <- prepareInput(response = list(ys = simulatedData[[1]][[1]][[1]][[1]][[1]][["y.gauss"]][1:1583]),
+   locObs = cbind(kenya.data$east, kenya.data$north),
+   likelihood = 0, jScale = 1,
+   urban = kenya.data$urban, mesh.s = mesh.s, adminMap = adm1,
+   nSubAPerPoint = 10, nSubRPerPoint = 10,
+   covariateData = NULL)
 #' }
 #' @export
 prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
                          urban=NULL, mesh.s=NULL,
                          adminMap=NULL, nSubAPerPoint=10, nSubRPerPoint=10,
-                         covariateData=NULL, log_nug_std =NULL){
+                         covariateData=NULL){
 
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
     stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
@@ -63,13 +60,16 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
   # number of observed locations
   nLoc = length(locObs[,1])
 
-  #response variable Gaussian/Binomial
+  #response variable Gaussian/Binomial/Poisson
   if (flag2 == 0){
     ys = response[["ys"]]
     ns = rep(1, nLoc)
-  } else {
+  } else if (flag2 == 1){
     ys = response[["ys"]]
     ns = response[["ns"]]
+  } else{
+    ys = response[["ys"]]
+    ns = rep(1, nLoc)
   }
   #
   #
@@ -94,7 +94,7 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
   }
   urbanVals=as.logical(urban)
 
-  intPointInfo = makeAllIntegrationPoints(coords = cbind(locObs[,1], locObs[,2]), urbanVals,
+  intPointInfo = makeAllIntegrationPoints(coords = cbind(locObs[,1], locObs[,2]), urbanVals = urbanVals,
                                           numPointsUrban=1+15*4, numPointsRural=1+15*9,
                                           scalingFactor = jScale,
                                           JInnerUrban=5, JOuterUrban=0,
@@ -188,14 +188,6 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
   ARural = out$ARural
   #
 
-  if(is.null(log_nug_std)){
-    log_nug_std = c()
-  }else{
-    log_nug_std = log_nug_std
-  }
-
-
-
   # Compile inputs for TMB
   data <- list(num_iUrban = length(ysUrban),  # Total number of urban observations
                num_iRural = length(ysRural),  # Total number of rural observations
@@ -219,8 +211,7 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
                            1), ## if 1, run adreport
                # normalization flag.
                flag1 = 1,
-               flag2 = flag2, #(0/1 for Gaussian/Binomial)
-               log_nug_std = log_nug_std
+               flag2 = flag2 #(0/1 for Gaussian/Binomial)
   )
 
   return(data)

@@ -16,7 +16,6 @@ bool isNA(Type x){
 }
 
 
-
 // helper function to make sparse SPDE precision matrix
 // Inputs:
 //    logkappa: log(kappa) parameter value
@@ -111,32 +110,43 @@ Type objective_function<Type>::operator() ()
   // options[1] == 1 : adreport transformed params
 
   // Prior specifications
-  //DATA_VECTOR( alpha_pri );
   DATA_VECTOR( beta_pri );
   DATA_VECTOR( matern_pri);
+  DATA_VECTOR( nug_pri);
 
+  //Type hyper = 0.0;
+  //if ( flag2 ==0 ){
+  //  DATA_VECTOR( nugg_hyper);
+  //  hyper = nugg_hyper[1];
+  //}
   // matern_pri = c(a, b, c, d): P(range < a) = b; P(sigma > c) = d
   Type matern_par_a = matern_pri[0]; // range limit:    rho0
   Type matern_par_b = matern_pri[1]; // range prob:     alpha_rho
   Type matern_par_c = matern_pri[2]; // field sd limit: sigma0
   Type matern_par_d = matern_pri[3]; // field sd prob:  alpha_sigma
 
+  // Log of INLA kappa param (precision of space covariance matrix)
+  Type log_kappa = theta[0];
+  // Log of INLA tau (related to spatial correlation and range)
+  Type log_tau = theta[1];
+
+  // nugget standard deviation
+  // Type nugStd = 0.0;
+  // if(flag2 ==0){
+  //   nugStd = exp(theta[2]);
+  // }
 
   // Fixed effects
   PARAMETER_VECTOR( beta );
-  // Log of INLA tau param (precision of space covariance matrix)
-  PARAMETER( log_tau );
-  // Log of INLA kappa (related to spatial correlation and range)
-  PARAMETER( log_kappa );
+  PARAMETER_VECTOR( theta );
+
+  // nugget parameters
+  Type nugStd = 0.0;
+  if(flag2 ==0){
+    nugStd = exp(theta[2]);
+  }
   // Random effects for each spatial mesh vertex
   PARAMETER_VECTOR( Epsilon_s );
-  // nugget standard deviation
-  PARAMETER_VECTOR(log_nug_std);
-
-  Type nugStd = 0.0;
-  if(log_nug_std.size() > 0){
-    nugStd = exp(log_nug_std[0]);
-  }
 
   // Make spatial precision matrix
   SparseMatrix<Type> Q_ss = spde_Q(log_kappa, log_tau, M0, M1, M2);
@@ -180,7 +190,8 @@ Type objective_function<Type>::operator() ()
   projepsilon_iUrban = AprojUrban * Epsilon_s.matrix();
   projepsilon_iRural = AprojRural * Epsilon_s.matrix();
 
-  // jnll contribution from priors
+  // jnll contribution from prior
+
   // add in priors for spde gp
   jnll -= dPCPriSPDE(log_tau, log_kappa,
                      matern_par_a, matern_par_b, matern_par_c, matern_par_d,
@@ -194,10 +205,15 @@ Type objective_function<Type>::operator() ()
     }
   }
 
-
+  // PC-prior on nugget standard deviation
+  if(flag2 ==0){
+    Type lamNug = -log(nug_pri[1])/nug_pri[0];
+    jnll -= log(lamNug)-lamNug*exp(theta[2])+theta[2];
+  }
 
 
   // contribution to the likelihood from:
+
   // the random effects
   if(options[0] == 1){
     // then we are not calculating the normalizing constant in the inner opt
@@ -210,6 +226,7 @@ Type objective_function<Type>::operator() ()
   }
 
   // jnll contribution from each datapoint i
+
   int thisIndex;
   Type thisLatentField;
   Type thisWeight;
@@ -240,16 +257,16 @@ Type objective_function<Type>::operator() ()
         thisWeight = wUrban(i,j);
 
         if ( flag2 ==0 ){
-        // Use Gaussian
-        tmpW(j) = thisWeight;
-        tmpUrb(j) = dnorm(y_iUrban(i), thisLatentField, nugStd, true);
+          // Use Gaussian
+          tmpW(j) = thisWeight;
+          tmpUrb(j) = dnorm(y_iUrban(i), thisLatentField, nugStd, true);
         }else if( flag2 ==1 ){
-        // Use dbinom_robust function, which takes the logit probability
-        tmpW(j) = thisWeight;
-        tmpUrb(j) = dbinom_robust( y_iUrban(i), n_iUrban(i), thisLatentField, true);
+          // Use dbinom_robust function, which takes the logit probability
+          tmpW(j) = thisWeight;
+          tmpUrb(j) = dbinom_robust( y_iUrban(i), n_iUrban(i), thisLatentField, true);
         }else if( flag2 ==2 ){
-        tmpW(j) = thisWeight;
-        tmpUrb(j) = dpois(y_iUrban(i), exp(thisLatentField), true);
+          tmpW(j) = thisWeight;
+          tmpUrb(j) = dpois(y_iUrban(i), exp(thisLatentField), true);
         }
       } // !isNA
 
@@ -291,18 +308,24 @@ Type objective_function<Type>::operator() ()
         thisWeight = wRural(i,j);
 
         if ( flag2 == 0 ){
-        // Use Gaussian
-        tmpW(j) = thisWeight;
-        tmpRur(j) = dnorm(y_iRural(i), thisLatentField, nugStd, true);
+
+          // Use Gaussian
+          tmpW(j) = thisWeight;
+          tmpRur(j) = dnorm(y_iRural(i), thisLatentField, nugStd, true);
+
         }else if( flag2 == 1){
-        // Use dbinom_robust function, which takes the logit probability
-        tmpW(j) = thisWeight;
-        tmpRur(j) = dbinom_robust( y_iRural(i), n_iRural(i), thisLatentField, true);
+
+          // Use dbinom_robust function, which takes the logit probability
+          tmpW(j) = thisWeight;
+          tmpRur(j) = dbinom_robust( y_iRural(i), n_iRural(i), thisLatentField, true);
+
         }else if( flag2 == 2){
-        tmpW(j) = thisWeight;
-        tmpRur(j) = dpois(y_iRural(i), exp(thisLatentField), true);
-      }
-    }// !isNA
+
+          tmpW(j) = thisWeight;
+          tmpRur(j) = dpois(y_iRural(i), exp(thisLatentField), true);
+
+        }
+      }// !isNA
 
     }
 
@@ -322,6 +345,15 @@ Type objective_function<Type>::operator() ()
     ADREPORT(sp_range);
     ADREPORT(sp_sigma);
     ADREPORT(beta);
+    // nuggetSd for for Gaussian likelihood
+    if( flag2 ==0 ){
+    ADREPORT(nugStd);
+    }
+    // rate parameter for Poisson likelihood
+    //if( flag2 ==2 ){
+    //ADREPORT(theta[2]);
+    //}
+
   }
 
   return jnll;
