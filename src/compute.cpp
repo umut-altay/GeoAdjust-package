@@ -112,12 +112,13 @@ Type objective_function<Type>::operator() ()
   // Prior specifications
   DATA_VECTOR( beta_pri );
   DATA_VECTOR( matern_pri);
+  DATA_VECTOR( nug_pri);
 
-  Type hyper = 0.0;
-  if ( flag2 ==0 ){
-    DATA_VECTOR( nugg_hyper);
-    hyper = nugg_hyper[1];
-  }
+  //Type hyper = 0.0;
+  //if ( flag2 ==0 ){
+  //  DATA_VECTOR( nugg_hyper);
+  //  hyper = nugg_hyper[1];
+  //}
   // matern_pri = c(a, b, c, d): P(range < a) = b; P(sigma > c) = d
   Type matern_par_a = matern_pri[0]; // range limit:    rho0
   Type matern_par_b = matern_pri[1]; // range prob:     alpha_rho
@@ -130,15 +131,20 @@ Type objective_function<Type>::operator() ()
   Type log_tau = theta[1];
 
   // nugget standard deviation
-  Type nugStd = 0.0;
-  if(theta.size() > 2){
-    nugStd = exp(theta[2]);
-  }
+  // Type nugStd = 0.0;
+  // if(flag2 ==0){
+  //   nugStd = exp(theta[2]);
+  // }
 
   // Fixed effects
   PARAMETER_VECTOR( beta );
   PARAMETER_VECTOR( theta );
 
+  // nugget parameters
+  Type nugStd = 0.0;
+  if(flag2 ==0){
+    nugStd = exp(theta[2]);
+  }
   // Random effects for each spatial mesh vertex
   PARAMETER_VECTOR( Epsilon_s );
 
@@ -199,8 +205,10 @@ Type objective_function<Type>::operator() ()
     }
   }
 
-  if(theta.size() > 2){
-    jnll -= log(hyper)-hyper*exp(theta[2])+theta[2];
+  // PC-prior on nugget standard deviation
+  if(flag2 ==0){
+    Type lamNug = -log(nug_pri[1])/nug_pri[0];
+    jnll -= log(lamNug)-lamNug*exp(theta[2])+theta[2];
   }
 
 
@@ -249,21 +257,16 @@ Type objective_function<Type>::operator() ()
         thisWeight = wUrban(i,j);
 
         if ( flag2 ==0 ){
-
-        // Use Gaussian
-        tmpW(j) = thisWeight;
-        tmpUrb(j) = dnorm(y_iUrban(i), thisLatentField, nugStd, true);
-
+          // Use Gaussian
+          tmpW(j) = thisWeight;
+          tmpUrb(j) = dnorm(y_iUrban(i), thisLatentField, nugStd, true);
         }else if( flag2 ==1 ){
-
-        // Use dbinom_robust function, which takes the logit probability
-        tmpW(j) = thisWeight;
-        tmpUrb(j) = dbinom_robust( y_iUrban(i), n_iUrban(i), thisLatentField, true);
+          // Use dbinom_robust function, which takes the logit probability
+          tmpW(j) = thisWeight;
+          tmpUrb(j) = dbinom_robust( y_iUrban(i), n_iUrban(i), thisLatentField, true);
         }else if( flag2 ==2 ){
-
-        tmpW(j) = thisWeight;
-        tmpUrb(j) = dpois(y_iUrban(i), exp(thisLatentField), true);
-
+          tmpW(j) = thisWeight;
+          tmpUrb(j) = dpois(y_iUrban(i), exp(thisLatentField), true);
         }
       } // !isNA
 
@@ -321,8 +324,8 @@ Type objective_function<Type>::operator() ()
           tmpW(j) = thisWeight;
           tmpRur(j) = dpois(y_iRural(i), exp(thisLatentField), true);
 
-      }
-    }// !isNA
+        }
+      }// !isNA
 
     }
 

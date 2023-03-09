@@ -4,13 +4,7 @@
 \alias{estimateModel}
 \title{Estimates model parameters}
 \usage{
-estimateModel(
-  data = NULL,
-  nNodes = NULL,
-  options = NULL,
-  priors = NULL,
-  nugg_hyper = NULL
-)
+estimateModel(data = NULL, nNodes = NULL, options = NULL, priors = NULL)
 }
 \arguments{
 \item{data}{A data input list that is created by prepareInput() function.}
@@ -23,10 +17,6 @@ Values of 1 and 0 turn the accounting for jittering in these components on and o
 \item{priors}{A list containing two components, namely "beta" and "range". Beta is a vector of two elements and passes the parameters of the Gaussian prior that will be assigned
 to the covariates (including the intercept). The first element of it is the mean and the second one is the
 standard deviation of Gaussian prior. Range is a value representing the median range in kilometers, which will be used for constructing the PC (Penalized-complexity) priors.}
-
-\item{nugg_hyper}{A positive value representing the hyperparameter for penalized
-complexity prior on the logarithm of nugget standard deviation. This value is
-needed when the likelihood is Gaussian. Otherwise can be set to NULL.}
 }
 \value{
 Model estimation results of class called res. The output consists of four elements:
@@ -44,7 +34,7 @@ path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
 load(path1)
 load(path2)
 nNodes = exampleMesh[['n']]
- results <- estimateModel(data = inputGaussian, nNodes = nNodes,
- options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
- range = 114, USpatial = 1, alphaSpatial = 0.05), nugg_hyper = sqrt(0.1))
+results <- estimateModel(data = inputDataGauss, nNodes = nNodes,
+options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
+range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05))
 }
