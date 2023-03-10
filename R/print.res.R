@@ -28,27 +28,64 @@ print.res <- function(x, ...){
   p2 = c("parameter", "estimate")
   cat(cat(p2, sep= " "), "95% CI length", sep = "    ")
   cat("\n")
-  cat(paste0("range"), format(round(as.numeric(x[["res"]][["estimates"]][[1]]), 4), nsmall = 4),
-      format(round(as.numeric(x[["res"]][["CI_Length"]][[1]]), 4), nsmall = 4), sep ="     ")
+  cat(cat(paste0("range"), format(round(as.numeric(x[["res"]][["estimates"]][[1]]), 4), nsmall = 4),sep ="     "),
+      format(round(as.numeric(x[["res"]][["CI_Length"]][[1]]), 4), nsmall = 4), sep ="    ")
   cat("\n")
   cat(cat(paste0("sigma"), format(round(as.numeric(x[["res"]][["estimates"]][[2]]), 4), nsmall = 4), sep ="     "),
       format(round(as.numeric(x[["res"]][["CI_Length"]][[2]]), 4), nsmall = 4),sep = "      ")
   cat("\n")
-  cat(paste0("beta0"), format(round(as.numeric(x[["res"]][["estimates"]][[3]]), 4), nsmall = 4),
-      format(round(as.numeric(x[["res"]][["CI_Length"]][[3]]), 4), nsmall = 4), sep ="     ")
-  cat("\n")
-  if(length(x[["res"]][["parameters"]])>3){
-   for (i in 4:p1[[1]]){
-  estimated = format(round(as.numeric(x[["res"]][["estimates"]][[i]]), 4), nsmall = 4)
-  CI = format(round(as.numeric(x[["res"]][["CI_Length"]][[i]]), 4), nsmall = 4)
-  cat(cat(paste0(x[["res"]][["parameters"]][[i]]), estimated, sep ="     "),
-      CI, sep ="      ")
-  cat("\n")
-  cat("----------------------------------\n")
-   }
-  } else{
-    cat("----------------------------------\n")
+
+  if(likelihood=="Gaussian"){
+    cat(cat(paste0("nuggetSD"), format(round(as.numeric(x[["res"]][["estimates"]][[3]]), 4), nsmall = 4),sep ="  "),
+        format(round(as.numeric(x[["res"]][["CI_Length"]][[3]]), 4), nsmall = 4), sep ="      ")
+    cat("\n")
+
+    cat(cat(paste0("intercept"), format(round(as.numeric(x[["res"]][["estimates"]][[4]]), 4), nsmall = 4),sep =" "),
+          format(round(as.numeric(x[["res"]][["CI_Length"]][[4]]), 4), nsmall = 4), sep ="      ")
+         cat("\n")
+
+    if(p1[[1]]>4){
+    for (i in 5:p1[[1]]){
+      estimated = format(round(as.numeric(x[["res"]][["estimates"]][[i]]), 4), nsmall = 4)
+      CI = format(round(as.numeric(x[["res"]][["CI_Length"]][[i]]), 4), nsmall = 4)
+      cat(cat(paste0(x[["res"]][["parameters"]][[i]]), estimated, sep ="     "),
+          CI, sep ="      ")
+      cat("\n")
+      cat("----------------------------------\n")
+    }
+    }
+
+  }else{
+    cat(cat(paste0("intercept"), format(round(as.numeric(x[["res"]][["estimates"]][[3]]), 4), nsmall = 4),sep =" "),
+         format(round(as.numeric(x[["res"]][["CI_Length"]][[3]]), 4), nsmall = 4), sep ="      ")
+         cat("\n")
+         if(p1[[1]]>3){
+    for (i in 4:p1[[1]]){
+      estimated = format(round(as.numeric(x[["res"]][["estimates"]][[i]]), 4), nsmall = 4)
+      CI = format(round(as.numeric(x[["res"]][["CI_Length"]][[i]]), 4), nsmall = 4)
+      cat(cat(paste0(x[["res"]][["parameters"]][[i]]), estimated, sep ="     "),
+          CI, sep ="      ")
+      cat("\n")
+      cat("----------------------------------\n")
+    }
+         }
   }
+
+  # cat(paste0("beta0"), format(round(as.numeric(x[["res"]][["estimates"]][[3]]), 4), nsmall = 4),
+  #     format(round(as.numeric(x[["res"]][["CI_Length"]][[3]]), 4), nsmall = 4), sep ="     ")
+  # cat("\n")
+  # if(length(x[["res"]][["parameters"]])>3){
+  #  for (i in 4:p1[[1]]){
+  # estimated = format(round(as.numeric(x[["res"]][["estimates"]][[i]]), 4), nsmall = 4)
+  # CI = format(round(as.numeric(x[["res"]][["CI_Length"]][[i]]), 4), nsmall = 4)
+  # cat(cat(paste0(x[["res"]][["parameters"]][[i]]), estimated, sep ="     "),
+  #     CI, sep ="      ")
+  # cat("\n")
+  # cat("----------------------------------\n")
+  #  }
+  # } else{
+  #   cat("----------------------------------\n")
+  # }
 
 }
 

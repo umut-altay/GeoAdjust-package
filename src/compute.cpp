@@ -125,6 +125,7 @@ Type objective_function<Type>::operator() ()
   Type matern_par_c = matern_pri[2]; // field sd limit: sigma0
   Type matern_par_d = matern_pri[3]; // field sd prob:  alpha_sigma
 
+  PARAMETER_VECTOR( theta );
   // Log of INLA kappa param (precision of space covariance matrix)
   Type log_kappa = theta[0];
   // Log of INLA tau (related to spatial correlation and range)
@@ -138,7 +139,7 @@ Type objective_function<Type>::operator() ()
 
   // Fixed effects
   PARAMETER_VECTOR( beta );
-  PARAMETER_VECTOR( theta );
+
 
   // nugget parameters
   Type nugStd = 0.0;
