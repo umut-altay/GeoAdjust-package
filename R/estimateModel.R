@@ -17,8 +17,8 @@
 #' path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
 #' load(path1)
 #' load(path2)
-#' nNodes = mesh.s[['n']]
-#'  results <- estimateModel(data = inputDataGauss, nNodes = nNodes,
+#'  nNodes = exampleMesh[['n']]
+#'  results <- estimateModel(data = exampleInputData, nNodes = nNodes,
 #'  options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
 #'  range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05))
 #' @importFrom stats optim
@@ -66,7 +66,7 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
                        theta = c(log_kappa, log_tau)
                        )
   }else{
-    log_nug_std_initial = -4
+    log_nug_std_initial = -2
     tmb_params <- list(beta=rep(0, nCov),
                        Epsilon_s = rep(0, nNodes),#,  RE on mesh vertices
                        theta = c(log_kappa, log_tau, log_nug_std_initial))
@@ -100,15 +100,16 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
 
   mu = par[-c(idx1)]
 
-  log_kappa = par[[nCov+1]]
-  log_tau   = par[[nCov+2]]
+  log_kappa = par[[idx1[1]]]
+  log_tau   = par[[idx1[2]]]
 
 
   if(likelihood =="Gaussian"){
-    logNugStd_estimate = par[[nCov+3]]
+    logNugStd_estimate = par[[idx1[3]]]
   }
 
-  beta_estimate = c(par[1:nCov])
+  idxCov = which(names(par)=="beta")
+  beta_estimate = c(par[idxCov])
   range_estimate = sqrt(8.0)/exp(log_kappa)
   sigma_estimate = 1.0 / sqrt(4.0*3.14159265359*exp(2.0*log_tau)*exp(2.0*log_kappa))
 

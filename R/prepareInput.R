@@ -30,10 +30,10 @@
 #' path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
 #' load(path1)
 #' load(path2)
-#' inputDataGauss <- prepareInput(response = list(ys = simulatedData[[1]][[1]][[1]][[1]][[1]][["y.gauss"]][1:1583]),
-#  locObs = cbind(kenya.data$east, kenya.data$north),
-#' likelihood = 0, jScale = 1,
-#' urban = kenya.data$urban, mesh.s = mesh.s, adminMap = adm1,
+#' inputData <- prepareInput(response = list(ys = surveyData$ys, ns = surveyData$ns),
+#' locObs = cbind(surveyData$east, surveyData$north),
+#' likelihood = 1, jScale = 1,
+#' urban = surveyData$urbanRural, mesh.s = exampleMesh, adminMap = adm1,
 #' nSubAPerPoint = 10, nSubRPerPoint = 10,
 #' covariateData = NULL)
 #' }
