@@ -24,7 +24,7 @@ successes (ys) for the binomial response, response
 values (ys) for the Gaussian response or the Poisson counts for the Poisson
 response.}
 
-\item{locObs}{A matrix containing the coordinates DHS
+\item{locObs}{A matrix containing the coordinates of DHS
 survey cluster centers in kilometers.}
 
 \item{likelihood}{A value indicating which likelihood should be used
@@ -37,7 +37,7 @@ scheme.}
 administrative area that each cluster center is initially located within
 (U for urban and R for rural).}
 
-\item{mesh.s}{A mesh created based on the country borders.}
+\item{mesh.s}{A triangulation mesh.}
 
 \item{adminMap}{A SpatialPolygonsDataFrame object containing the borders of
 the administrative area level, which was respected while the cluster centers

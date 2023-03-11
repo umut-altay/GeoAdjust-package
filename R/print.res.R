@@ -7,6 +7,7 @@
 #' shows the estimated model parameters and the corresponding 95% credible
 #' interval lengths.
 #' @examples
+#' \donttest{
 #' path1 <- system.file("extdata", "exampleInputData.rda", package = "GeoAdjust")
 #' path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
 #' load(path1)
@@ -14,8 +15,9 @@
 #' nNodes = exampleMesh[['n']]
 #' results <- estimateModel(data = exampleInputData, nNodes = nNodes,
 #' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-#' range = 114, USpatial = 1, alphaSpatial = 0.05))
+#' range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05))
 #' print(results)
+#' }
 #' @export
 print.res <- function(x, ...){
   p1 = lengths(x[["res"]]) # number of rows

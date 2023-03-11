@@ -6,7 +6,7 @@
 #' @param admin0 A SpatialPolygonsDataFrame representing the national level (admin0) borders of the country.
 #' @param admin1 A SpatialPolygonsDataFrame representing the first level (admin1) subnational borders of the country.
 #' @param admin2 A SpatialPolygonsDataFrame representing the second level (admin2) subnational borders of the country.
-#' @param rmPoly A number referring to the ID number of the admin2 level polygon that needs to be left uncolored.
+#' @param rmPoly A number referring to the ID number of the admin2 level polygon that needs to be left uncolored. It can be set to NULL as well.
 #' @param locObs A data frame containing the coordinates of the observation points (DHS locations) in kilometers.
 #' @return Plots two ggplot objects. One of them (pred.) shows the median predictions and the other one (cv%) shows the
 #' corresponding coefficient of variations across the country, respectively.

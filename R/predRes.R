@@ -5,10 +5,12 @@
 #' @param covariateData A list containing the covariate rasters.
 #' @param obj The optimized core model object returned by estimateModel() function.
 #' @param draws A matrix containing 10.000 sampled values for each covariate effect size and 10.000 sampled values of random effect coefficients for each mesh node.
+#' It is one of the elements of the returning output list of estimateModel() function.
 #' @param predCoords A matrix containing the coordinates of the prediction locations in kilometers (UTM zone:37).
 #' @param flag A value indicating the type of the likelihood that will be used. Pass 0 for Gaussian, 1 for binomial and 2 for Poisson likelihoods.
 #' @return A matrix containing the mean, median,standard deviation and the lower and the upper bounds of 95% credible intervals of the predictions.
 #' @examples
+#' \donttest{
 #' if(requireNamespace("INLA")){
 #' path1 <- system.file("extdata", "exampleInputData.rda", package = "GeoAdjust")
 #' path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
@@ -19,12 +21,13 @@
 #' nNodes = exampleMesh[['n']]
 #' results <- estimateModel(data = exampleInputData, nNodes = nNodes,
 #' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-#' range = 114, USpatial = 1, alphaSpatial = 0.05))
+#' range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05))
 #' pred = predRes(obj = results[["obj"]],
 #' predCoords = cbind(exampleGrid[["loc.pred"]]["east"],
 #' exampleGrid[["loc.pred"]]["north"]),
 #' draws = results[["draws"]], nCov = 1,
 #' mesh.s = exampleMesh, covariateData = NULL, flag = 1)
+#' }
 #' }
 #' @importFrom stats median quantile sd
 #' @export
