@@ -5,7 +5,7 @@
 #' successes (ys) for the binomial response, response
 #' values (ys) for the Gaussian response or the Poisson counts for the Poisson
 #' response.
-#' @param locObs A matrix containing the coordinates DHS
+#' @param locObs A matrix containing the coordinates of DHS
 #' survey cluster centers in kilometers.
 #' @param likelihood A value indicating which likelihood should be used
 #' (0, 1 or 2 for Gaussian, binomial or Poisson, respectively).
@@ -14,7 +14,7 @@
 #' @param urban A vector containing the urbanization classification of the
 #' administrative area that each cluster center is initially located within
 #' (U for urban and R for rural).
-#' @param mesh.s A mesh created based on the country borders.
+#' @param mesh.s A triangulation mesh.
 #' @param adminMap A SpatialPolygonsDataFrame object containing the borders of
 #' the administrative area level, which was respected while the cluster centers
 #' were initially being jittered (can be obtained from https://gadm.org).

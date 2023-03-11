@@ -12,9 +12,9 @@ convertDegToKM(loc)
 and the second column is latitude).}
 }
 \value{
-A two column matrix of The Universal Transverse Mercator (UTM) zone:
-37 coordinate system (https://www.usgs.gov/faqs/what-does-term-utm-mean-utm-
-better-or-more-accurate-latitudelongitude).
+A two column matrix of  coordinates in The Universal Transverse
+Mercator (UTM) zone:37 (https://www.usgs.gov/faqs/what-does-term-utm-mean-
+utm-better-or-more-accurate-latitudelongitude).
 }
 \description{
 Converts a set of coordinates in degrees into a new set of coordinates in

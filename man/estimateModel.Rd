@@ -14,9 +14,12 @@ estimateModel(data = NULL, nNodes = NULL, options = NULL, priors = NULL)
 \item{options}{A list containing two components, namely, random and covariates, representing the spatial random field and covariates.
 Values of 1 and 0 turn the accounting for jittering in these components on and off.}
 
-\item{priors}{A list containing two components, namely "beta" and "range". Beta is a vector of two elements and passes the parameters of the Gaussian prior that will be assigned
+\item{priors}{A list of six components. Beta is a vector of two elements and passes the parameters of the Gaussian prior that will be assigned
 to the covariates (including the intercept). The first element of it is the mean and the second one is the
-standard deviation of Gaussian prior. Range is a value representing the median range in kilometers, which will be used for constructing the PC (Penalized-complexity) priors.}
+standard deviation of Gaussian prior. Range is a value representing the median range in kilometers, which will be used for constructing the PC (Penalized-complexity) priors.
+USpatial and alphaSpatial are the threshold and probability of crossing the threshold for the variance prior.
+UNugget and alphaNug are the threshold and probability of crossing the threshold for the prior on the nugget standard deviation.
+UNugget and alphaNug should be included in the priors argument, but they will only be used when the likelihood is Gaussian.}
 }
 \value{
 Model estimation results of class called res. The output consists of four elements:
@@ -29,12 +32,14 @@ A character string indicating the likelihood type in the model.
 Estimates model parameters
 }
 \examples{
+\donttest{
 path1 <- system.file("extdata", "exampleInputData.rda", package = "GeoAdjust")
 path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
 load(path1)
 load(path2)
- nNodes = exampleMesh[['n']]
- results <- estimateModel(data = exampleInputData, nNodes = nNodes,
- options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
- range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05))
+nNodes = exampleMesh[['n']]
+results <- estimateModel(data = exampleInputData, nNodes = nNodes,
+options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
+range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05))
+}
 }

@@ -4,9 +4,11 @@
 #' @param res A value representing the resolution in kilometers.
 #' @return A list. The first element of the list, predRast, is the prediction raster. The second element of the list, loc.pred, is a data frame containing the grid of coordinates of the cell centers (both in degrees and in kilometers) of the prediction raster.
 #' @examples
+#' \donttest{
 #' path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 #' load(path1)
 #' grid <- gridCountry(admin0 = adm0, res = 5)
+#' }
 #' @export
 gridCountry = function(admin0 = NULL, res = NULL){
 

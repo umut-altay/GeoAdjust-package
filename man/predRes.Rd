@@ -19,7 +19,8 @@ predRes(
 
 \item{predCoords}{A matrix containing the coordinates of the prediction locations in kilometers (UTM zone:37).}
 
-\item{draws}{A matrix containing 10.000 sampled values for each covariate effect size and 10.000 sampled values of random effect coefficients for each mesh node.}
+\item{draws}{A matrix containing 10.000 sampled values for each covariate effect size and 10.000 sampled values of random effect coefficients for each mesh node.
+It is one of the elements of the returning output list of estimateModel() function.}
 
 \item{nCov}{A value showing the number of covariates (including the intercept).}
 
@@ -36,6 +37,7 @@ A matrix containing the mean, median,standard deviation and the lower and the up
 Predicts model outcomes at new locations.
 }
 \examples{
+\donttest{
 if(requireNamespace("INLA")){
 path1 <- system.file("extdata", "exampleInputData.rda", package = "GeoAdjust")
 path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
@@ -46,11 +48,12 @@ load(path3)
 nNodes = exampleMesh[['n']]
 results <- estimateModel(data = exampleInputData, nNodes = nNodes,
 options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-range = 114, USpatial = 1, alphaSpatial = 0.05))
+range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05))
 pred = predRes(obj = results[["obj"]],
 predCoords = cbind(exampleGrid[["loc.pred"]]["east"],
 exampleGrid[["loc.pred"]]["north"]),
 draws = results[["draws"]], nCov = 1,
 mesh.s = exampleMesh, covariateData = NULL, flag = 1)
+}
 }
 }
