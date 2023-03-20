@@ -202,7 +202,7 @@ Type objective_function<Type>::operator() ()
     jnll -= dnorm(beta[0], beta_pri[0], beta_pri[1], true); // N(mean, sd)
   }else if(beta.size() > 1){
     for (int i = 0; i < beta.size(); i++){
-    jnll -= dnorm(beta[i+1], beta_pri[0], beta_pri[1], true); // N(mean, sd)
+      jnll -= dnorm(beta[i], beta_pri[0], beta_pri[1], true); // N(mean, sd)
     }
   }
 

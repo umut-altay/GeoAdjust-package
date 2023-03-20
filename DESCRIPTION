@@ -1,7 +1,7 @@
 Package: GeoAdjust
 Type: Package
 Title: Accounting for Random Displacements of True GPS Coordinates of Data
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: c(person(given = "Umut", family = "Altay", email= "altayumut.ua@gmail.com", role = c("cre","aut")),
              person(given = "John", family = "Paige", email = "john.paige@ntnu.no", role = "aut"),
              person(given = "Geir-Arne", family = "Fuglstad", email = "geir-arne.fuglstad@ntnu.no", role = "aut"),
