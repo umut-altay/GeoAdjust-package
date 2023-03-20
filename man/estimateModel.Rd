@@ -4,7 +4,13 @@
 \alias{estimateModel}
 \title{Estimates model parameters}
 \usage{
-estimateModel(data = NULL, nNodes = NULL, options = NULL, priors = NULL)
+estimateModel(
+  data = NULL,
+  nNodes = NULL,
+  options = NULL,
+  priors = NULL,
+  n.sims = NULL
+)
 }
 \arguments{
 \item{data}{A data input list that is created by prepareInput() function.}
@@ -20,6 +26,8 @@ standard deviation of Gaussian prior. Range is a value representing the median r
 USpatial and alphaSpatial are the threshold and probability of crossing the threshold for the variance prior.
 UNugget and alphaNug are the threshold and probability of crossing the threshold for the prior on the nugget standard deviation.
 UNugget and alphaNug should be included in the priors argument, but they will only be used when the likelihood is Gaussian.}
+
+\item{n.sims}{number of samples to be drawn for each model parameter}
 }
 \value{
 Model estimation results of class called res. The output consists of four elements:
@@ -40,6 +48,6 @@ load(path2)
 nNodes = exampleMesh[['n']]
 results <- estimateModel(data = exampleInputData, nNodes = nNodes,
 options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05))
+range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05), n.sims = 1000)
 }
 }

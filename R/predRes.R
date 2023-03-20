@@ -21,7 +21,7 @@
 #' nNodes = exampleMesh[['n']]
 #' results <- estimateModel(data = exampleInputData, nNodes = nNodes,
 #' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-#' range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05))
+#' range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05), n.sims = 1000)
 #' pred = predRes(obj = results[["obj"]],
 #' predCoords = cbind(exampleGrid[["loc.pred"]]["east"],
 #' exampleGrid[["loc.pred"]]["north"]),

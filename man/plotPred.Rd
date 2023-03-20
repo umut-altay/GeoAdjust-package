@@ -3,7 +3,7 @@
 \name{plotPred}
 \alias{plotPred}
 \title{Plots the predictions and the corresponding uncertainty (coefficient of
-variation), and saves them into the preferred directory as separate .pdf files.}
+variation)}
 \usage{
 plotPred(
   pred = NULL,
@@ -31,12 +31,12 @@ plotPred(
 \item{locObs}{A data frame containing the coordinates of the observation points (DHS locations) in kilometers.}
 }
 \value{
-Plots two ggplot objects. One of them (pred.) shows the median predictions and the other one (cv%) shows the
+A list of two ggplot objects. One of them (ggPred) shows the median predictions and the other one (ggUncertainty) shows the
 corresponding coefficient of variations across the country, respectively.
 }
 \description{
 Plots the predictions and the corresponding uncertainty (coefficient of
-variation), and saves them into the preferred directory as separate .pdf files.
+variation)
 }
 \examples{
 path1 <- system.file("extdata", "examplePredictionResults.rda", package = "GeoAdjust")
@@ -45,7 +45,7 @@ path3 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 load(path1)
 load(path2)
 load(path3)
-plotPred(pred = examplePredictionResults,
+plots = plotPred(pred = examplePredictionResults,
 predRaster = exampleGrid[["predRast"]], admin0 = adm0,
 admin1 = adm1, admin2 = NULL, rmPoly = NULL,
 locObs = data.frame(East = surveyData$east, North = surveyData$north))

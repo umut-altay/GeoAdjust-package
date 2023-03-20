@@ -2,6 +2,7 @@
 #'
 #' @param data A data input list that is created by prepareInput() function.
 #' @param nNodes number of mesh nodes.
+#' @param n.sims number of samples to be drawn for each model parameter
 #' @param options A list containing two components, namely, random and covariates, representing the spatial random field and covariates.
 #' Values of 1 and 0 turn the accounting for jittering in these components on and off.
 #' @param priors A list of six components. Beta is a vector of two elements and passes the parameters of the Gaussian prior that will be assigned
@@ -24,11 +25,11 @@
 #' nNodes = exampleMesh[['n']]
 #' results <- estimateModel(data = exampleInputData, nNodes = nNodes,
 #' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-#' range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05))
+#' range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05), n.sims = 1000)
 #' }
 #' @importFrom stats optim
 #' @export
-estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NULL){
+estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NULL, n.sims = NULL){
 
   flagRandomField = options[["random"]]
   flagCovariates = options[["covariates"]]
@@ -129,7 +130,7 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
   }
   prec = Qtest
   L = Matrix::Cholesky(prec, super = T)
-  t.draws <- rmvnorm_prec(mu = mu , chol_prec = L, n.sims = 10000)
+  t.draws <- rmvnorm_prec(mu = mu , chol_prec = L, n.sims = n.sims)
   parnames <- c(names(mu))
 
   beta_draws<- t.draws[parnames == 'beta',]

@@ -1,30 +1,27 @@
 ## Resubmission
-This is a resubmission. In this version I have:
+This is a resubmission to fix a critical error that has been just discovered:
 
-* Removed all \dontrun{} commands.
+Line 205 of the file compute.cpp was operating on wrong indexing as beta[i+1].
+This caused the optimization to throw an error, because the code was trying to 
+run on non-existing betas (covariate effect sizes). The indexing should have 
+been beta[i], instead. 
 
-* Created two small size SpatialPolygonsDataFrame objects representing national 
-  and sub-national level borders of an artificially created example country 
-  with only four sub-national administrative areas. 
-  
-* Created an example data frame with only 10 observations, mimicing the 
-  Demographic and Health Surveys program (DHS) survey data. These three files 
-  are stored under"geoData.rda" file.
-  
-* Reprojected the national level SpatialPolygonsDataFrame into UTM: zone 37 
-  coordinates and stored as "adm0UTM37.rda". 
-  
-* Created example outputs of gridCountry(), meshCountry(), prepareInput() and
-  predRes() functions. These are called exampleGrid, exampleMesh, 
-  exampleInputData and examplePredictionResults, respectively.
-  
-* Stored all example files under inst/extdata subfolder.
+This was a critical error preventing the estimateModel() function from working
+when there are covariates in the model. It is fixed now. 
 
-* Didn't store an example output from estimateModel() function due to its 
-  size (77 MB).
+* In addition, there are two small changes which improve the functionality:
+
+  1.) An argument called n.sims added to the estimateModel() function. The 
+  argument controls the number of samples that should be drawn for each parameter
+  in the model. This was previously hard coded as 10.000. Now it is possible to 
+  set it to a lower number to speed up the computation.
   
-* Put the examples that cause more than 10 sec check time in \donttest{}
-  command.
+  2.) plotPred() function was plotting two ggplot objects to the plots pane. Now
+  the function outputs them within a list, so that the package users can decide
+  which object they want to be plotted. 
+
+* Examples are updated according to the small changes mentioned above.
+
   
 ## R CMD check results
 
@@ -45,7 +42,7 @@ This is a resubmission. In this version I have:
   about how to install INLA, or if it is already installed, it gets attached to
   the NAMESPACE.
 
-* checking CRAN incoming feasibility ... [9s] NOTE
+* checking CRAN incoming feasibility ... [11s] NOTE
   Maintainer: 'Umut Altay <altayumut.ua@gmail.com>'
 
   A note indicating the name of the package maintainer.
