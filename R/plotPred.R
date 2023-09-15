@@ -54,7 +54,7 @@ plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL
 
     # find which points are inside the polygon that needs to be removed, and assign NA to them
 
-    pointInPolygon = st_within(predCoords, polyg, sparse = FALSE, prepared = TRUE)
+    pointInPolygon = sf::st_within(predCoords, polyg, sparse = FALSE, prepared = TRUE)
 
     inRmPoly = which(pointInPolygon == TRUE)
 
@@ -67,25 +67,17 @@ plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL
 
   dfCountry <- ggplot2::fortify(admin1_trnsfrmd, region = "NAME_1")
 
-  by_n <- function(n) { seq(0, 1000, by = n) }
-
-  n_east = (max(st_coordinates(predCoords)[,1])-min(st_coordinates(predCoords)[,1]))/4
-  n_north = (max(st_coordinates(predCoords)[,2])-min(st_coordinates(predCoords)[,2]))/4
-
-  breaks_east = seq(min(st_coordinates(predCoords)[,1]), max(st_coordinates(predCoords)[,1]), by = n_east)
-  breaks_north = seq(min(st_coordinates(predCoords)[,2]), max(st_coordinates(predCoords)[,2]), by = n_north)
-
   # plotting the predictions
   val = terra::values(pred)
   val = val[,1]
-  d=data.frame(East = st_coordinates(predCoords)[,1],
-               North = st_coordinates(predCoords)[,2],
+  d=data.frame(East = sf::st_coordinates(predCoords)[,1],
+               North = sf::st_coordinates(predCoords)[,2],
                val=val)
   colnames(d) = c("East", "North", "val")
 
   ggPred =ggplot2::ggplot(d, ggplot2::aes(East,North)) +
     ggplot2::geom_raster(ggplot2::aes(fill=val)) + ggplot2::theme_bw() +
-    geom_sf(data=dfCountry, fill=NA, colour = "lightgrey",inherit.aes = FALSE)+coord_sf(datum=st_crs(target_crs))+
+    ggplot2::geom_sf(data=dfCountry, fill=NA, colour = "lightgrey",inherit.aes = FALSE)+ggplot2::coord_sf(datum=sf::st_crs(target_crs))+
     ggplot2::theme(axis.text.y = ggplot2::element_text(size = 10), axis.text.x = ggplot2::element_text(size = 10)) +
     ggplot2::theme(axis.title.x=ggplot2::element_text(size = ggplot2::rel(3))) + ggplot2::theme(axis.title.y=ggplot2::element_text(size = ggplot2::rel(3)))+
     ggplot2::theme(legend.title = ggplot2::element_text(size = ggplot2::rel(3))) + #ggplot2::coord_fixed() +
@@ -104,14 +96,14 @@ plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL
   # plotting the uncertainty (coefficient of variation)
   val = terra::values(uncertainty)
   val = val[,1]
-  d=data.frame(East = st_coordinates(predCoords)[,1],
-               North = st_coordinates(predCoords)[,2],
+  d=data.frame(East = sf::st_coordinates(predCoords)[,1],
+               North = sf::st_coordinates(predCoords)[,2],
                val=val)
   colnames(d) = c("East", "North", "val")
 
   ggUncertainty = ggplot2::ggplot(d, ggplot2::aes(East,North)) +
     ggplot2::geom_raster(ggplot2::aes(fill=val)) + ggplot2::theme_bw() +
-    geom_sf(data=dfCountry, fill=NA, colour = "lightgrey",inherit.aes = FALSE)+coord_sf(datum=st_crs(target_crs))+
+    ggplot2::geom_sf(data=dfCountry, fill=NA, colour = "lightgrey",inherit.aes = FALSE)+ggplot2::coord_sf(datum=sf::st_crs(target_crs))+
     ggplot2::theme(axis.text.y = ggplot2::element_text(size = 10), axis.text.x = ggplot2::element_text(size = 10)) +
     ggplot2::theme(axis.title.x=ggplot2::element_text(size = ggplot2::rel(3))) + ggplot2::theme(axis.title.y=ggplot2::element_text(size = ggplot2::rel(3)))+
     ggplot2::theme(legend.title = ggplot2::element_text(size = ggplot2::rel(3))) + #ggplot2::coord_fixed() +

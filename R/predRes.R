@@ -36,7 +36,7 @@
 predRes = function(obj = NULL, predCoords  = NULL, draws  = NULL, covariateData  = NULL, mesh.s  = NULL, flag  = NULL){
 
   t.draws = draws
-  prd_coor = st_coordinates(predCoords)
+  prd_coor = sf::st_coordinates(predCoords)
   prd_coor = as.matrix(cbind(prd_coor[,1], prd_coor[,2]))
   A.pred = fmesher::fm_evaluator(mesh = mesh.s, loc = prd_coor)
   A.pred = A.pred[["proj"]][["A"]]
@@ -55,8 +55,8 @@ predRes = function(obj = NULL, predCoords  = NULL, draws  = NULL, covariateData 
 
       for (i in 1:length(covariateData)){
 
-        crs_CovRaster = st_crs(covariateData[[i]])
-        coorVectorPred = terra::vect(st_transform(predCoords, crs_CovRaster[["wkt"]]))
+        crs_CovRaster = sf::st_crs(covariateData[[i]])
+        coorVectorPred = terra::vect(sf::st_transform(predCoords, crs_CovRaster[["wkt"]]))
 
         #Extract covariate values from data rasters at predCoords
         assign(paste0("covariatePred", i), terra::extract(covariateData[[i]], coorVectorPred)[,2])
@@ -64,7 +64,7 @@ predRes = function(obj = NULL, predCoords  = NULL, draws  = NULL, covariateData 
       }
 
 }
-    nLoc_pred = length(st_coordinates(predCoords)[,1])
+    nLoc_pred = length(sf::st_coordinates(predCoords)[,1])
 
     covariatesAtPred = rep(1, nLoc_pred)
 

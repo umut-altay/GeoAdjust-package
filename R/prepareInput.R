@@ -47,14 +47,14 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=1,
                          adminMap=NULL,
                          covariateData=NULL, target_crs){
 
-  locObs = st_transform(locObs, target_crs)
+  locObs = sf::st_transform(locObs, target_crs)
   adminMap = sf::st_transform(adminMap, target_crs)
 
   # extract arguments
   flag2 = likelihood
 
   # number of observed locations
-  nLoc = length(st_coordinates(locObs)[,1])
+  nLoc = length(sf::st_coordinates(locObs)[,1])
 
   #response variable Gaussian/Binomial/Poisson
   if (flag2 == 0){
@@ -75,8 +75,8 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=1,
   alphaSpatial = 0.05
   #
   #jittering the points a bit just to make a mesh
-  spdeComponents = fm_fem(mesh.s)
-  A.mesher = fm_evaluator(mesh = mesh.s, loc = cbind(st_coordinates(locObs)[,1], st_coordinates(locObs)[,2]))
+  spdeComponents = fmesher::fm_fem(mesh.s)
+  A.mesher = fmesher::fm_evaluator(mesh = mesh.s, loc = cbind(st_coordinates(locObs)[,1], st_coordinates(locObs)[,2]))
   A.proj = A.mesher[["proj"]][["A"]]
 
   # TMB input for the model that accounts for jittering
@@ -120,17 +120,17 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=1,
   nsRural = ns[!urbanVals]
 
   UrbanCoor = data.frame(x = coordsUrban[,1], y = coordsUrban[,2])
-  UrbanCoor = st_as_sf(UrbanCoor, coords=c("x","y"), crs = st_crs(locObs))
+  UrbanCoor = sf::st_as_sf(UrbanCoor, coords=c("x","y"), crs = sf::st_crs(locObs))
 
   RuralCoor = data.frame(x = coordsRural[,1], y = coordsRural[,2])
-  RuralCoor = st_as_sf(RuralCoor, coords=c("x","y"), crs = st_crs(locObs))
+  RuralCoor = sf::st_as_sf(RuralCoor, coords=c("x","y"), crs = sf::st_crs(locObs))
 
 if (!is.null(covariateData)){
   for (i in 1:length(covariateData)){
 
-    crs_CovRaster = st_crs(covariateData[[i]])
-    coorVectorUrban = terra::vect(st_transform(UrbanCoor, crs_CovRaster[["wkt"]]))
-    coorVectorRural = terra::vect(st_transform(RuralCoor, crs_CovRaster[["wkt"]]))
+    crs_CovRaster = sf::st_crs(covariateData[[i]])
+    coorVectorUrban = terra::vect(sf::st_transform(UrbanCoor, crs_CovRaster[["wkt"]]))
+    coorVectorRural = terra::vect(sf::st_transform(RuralCoor, crs_CovRaster[["wkt"]]))
 
     #Extract covariate values from data rasters at dhsLocs
     assign(paste0("covariate_Urban", i), terra::extract(covariateData[[i]], coorVectorUrban)[,2])
@@ -139,8 +139,8 @@ if (!is.null(covariateData)){
   }
   #}
 }
-  nLoc_urban = length(st_coordinates(UrbanCoor[,1]))
-  nLoc_rural = length(st_coordinates(RuralCoor[,1]))
+  nLoc_urban = length(sf::st_coordinates(UrbanCoor[,1]))
+  nLoc_rural = length(sf::st_coordinates(RuralCoor[,1]))
 
   desMatrixJittUrban = as.matrix(rep(1, nLoc_urban))
   desMatrixJittRural = as.matrix(rep(1, nLoc_rural))

@@ -20,10 +20,10 @@ gridCountry = function(admin0 = NULL, res = NULL, target_crs = NULL){
 
   admin0_trnsfrmd = sf::st_transform(admin0, target_crs)
 
-  xmin = st_bbox(admin0_trnsfrmd)[[1]]
-  xmax = st_bbox(admin0_trnsfrmd)[[3]]
-  ymin = st_bbox(admin0_trnsfrmd)[[2]]
-  ymax = st_bbox(admin0_trnsfrmd)[[4]]
+  xmin = sf::st_bbox(admin0_trnsfrmd)[[1]]
+  xmax = sf::st_bbox(admin0_trnsfrmd)[[3]]
+  ymin = sf::st_bbox(admin0_trnsfrmd)[[2]]
+  ymax = sf::st_bbox(admin0_trnsfrmd)[[4]]
 
   predRast <- terra::rast(xmin = xmin , xmax = xmax , ymin = ymin , ymax = ymax)
   res(predRast) = res
@@ -32,7 +32,7 @@ gridCountry = function(admin0 = NULL, res = NULL, target_crs = NULL){
   idx = 1:terra::ncell(predRast)
   loc.pred = terra::xyFromCell(predRast, idx)
   loc.pred = data.frame(east = loc.pred[,1], north = loc.pred[,2])
-  loc.pred = st_as_sf(loc.pred, coords = c("east", "north"), crs = target_crs)
+  loc.pred = sf::st_as_sf(loc.pred, coords = c("east", "north"), crs = target_crs)
   return(list(loc.pred = loc.pred, predRast=predRast))
 }
 

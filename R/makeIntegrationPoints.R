@@ -234,8 +234,8 @@ makeAllIntegrationPoints = function(coords, urbanVals,
   # separate coordinates in urban and rural
 
 
-  coordsUrban = st_coordinates(coords[urbanVals,])
-  coordsRural = st_coordinates(coords[!urbanVals,])
+  coordsUrban = sf::st_coordinates(coords[urbanVals,])
+  coordsRural = sf::st_coordinates(coords[!urbanVals,])
   nUrban = nrow(coordsUrban)
   nRural = nrow(coordsRural)
 
@@ -280,75 +280,21 @@ makeAllIntegrationPoints = function(coords, urbanVals,
 
     adminMap$OBJECTID = 1:length(adminMap$NAME_1)
 
-    temp = st_join(coords, adminMap)
+    temp = sf::st_join(coords, adminMap)
 
     adminID = temp$OBJECTID
-    #crs_table <- sf::read_sf(NGA_1_trnsfrmd, "crs_view")
-
-
-    # coordPoints = st_as_sf(coorData, coords=c("east","north"), crs = st_crs(st_crs(NGA_1_trnsfrmd)$wkt)) # kilometers (east, north)
-    #
-    # coordsLonLat = st_transform(coordPoints, crs = st_crs(st_crs(admin2)$wkt))  # degrees(lon, lat)
-    #
-    # #temp <- st_join(coordsLonLat, adminMap, join = st_within)
-    #
-    # adminMap$OBJECTID = 1:length(adminMap$NAME_1)
-    #
-    # joined = st_join(coordsLonLat, adminMap)
-    #adminID = joined$OBJECTID
-
-    # int <- sf::st_intersects(adminMap, coordsLonLat)
-    #
-    # int = sapply(st_intersects(coordsLonLat,adminMap), function(z) if (length(z)==0) NA_integer_ else z[1])
-    #
-
-    #mydf_sf <- sf::st_as_sf(mydf, coords=c("lon","lat"), crs=4326)
-    # int <- sf::st_contains(mydf_sf , map)
-    # mydf$country <- map$country_name[unlist(int)]
-    # determine what admin area each point is in
-    #coordsLonLat = convertKMToDeg(coords)
-    #spCoordsLonLat = sp::SpatialPoints(coordsLonLat, adminMap@proj4string)
-    #temp = sp::over(spCoordsLonLat, adminMap, returnList=FALSE)
-    #adminID = temp$OBJECTID
-
-    # calculate distances to admin boundaries
-    #adminMapPolygons = sp::as.SpatialPolygons.PolygonsList(adminMap@polygons, adminMap@proj4string)
-
-    # require(geosphere)
-    # dists = sapply(1:nrow(coords), function(ind) {dist2Line(spCoordsLonLat[ind], adminMapPolygons[adminID[ind]])[1]}) * (1/1000)
-    #
-
-
-
-   # dists = (st_distance(coorDataDegrees, adminMap))/1000
-        #require(geosphere)
-    #dists = sapply(1:nrow(coorDataDegrees), function(ind) {sf::st_distance(coorDataDegrees[ind,], st_geometry(adminMap[adminID[ind],]))[1]}) * (1/1000)
-
 
 # NOTE : adminMap[adminID,] below returns the same number of polygons
 # with the number of points and then st_distance outputs a square matrix
 
 
-    geomMap = st_geometry(obj = adminMap[adminID,])
-    geomMapMulti = st_cast(geomMap, to = 'MULTILINESTRING')
-    dists = st_distance(coords, geomMapMulti)
+    geomMap = sf::st_geometry(obj = adminMap[adminID,])
+    geomMapMulti = sf::st_cast(geomMap, to = 'MULTILINESTRING')
+    dists = sf::st_distance(coords, geomMapMulti)
 
-    # if (units(dists)[[1]]=="m"){
-    # units(dists) <- NULL # remove the units from dists
-    #
-    # # dists = st_geometry(obj = adminMap[adminID,]) %>%           #https://github.com/r-spatial/sf/issues/1290
-    # #   st_cast(to = 'MULTILINESTRING') %>%
-    # #   st_distance(y=coorDataDegrees)
-    # #dists[is.infinite(dists)] <- NA
-    # minDists = apply(dists, 2 , min) # minimum distances in meters
-    # minDistsKM = minDists/1000      # convert them to kilometers
-    # } else if (units(dists)[[1]]=="km"){
+
       units(dists) <- NULL # remove the units from dists
       minDistsKM = apply(dists, 2 , min) # minimum distances in kilometers
-    # } else {
-    #   stop("Measurement unit of target_crs should be either in kilometers or in degrees")
-    # }
-
 
     # set whether or not to update weights based on distance to admin boundaries
     updateI = as.numeric(minDistsKM) < maxDist
@@ -356,7 +302,7 @@ makeAllIntegrationPoints = function(coords, urbanVals,
     ruralUpdateI = updateI[!urbanVals]
 
     # calculate updated weights for the integration points near the borders
-    tempCoords = st_coordinates(coords[updateI,])
+    tempCoords = sf::st_coordinates(coords[updateI,])
     tempUrbanVals = urbanVals[updateI]
     #require(fields)
 
@@ -395,7 +341,7 @@ makeAllIntegrationPoints = function(coords, urbanVals,
 
 
     tempCoords = data.frame(x=tempCoords[,1], y=tempCoords[,2])
-    tempCoords = st_as_sf(tempCoords, coords=c("x", "y"), crs = st_crs(coords))
+    tempCoords = sf::st_as_sf(tempCoords, coords=c("x", "y"), crs = st_crs(coords))
 
     tempNewWs = updateWeightsByAdminArea(coords=tempCoords, urbanVals=tempUrbanVals,
                                          adminMap=adminMap,
@@ -538,29 +484,7 @@ updateWeightsByAdminArea = function(coords,
 
   # get admin areas associated with coordinates
 
-
-  #length(coords$geometry[[1]])
-  #if(is.null(nrow(coords))){
-  # coordsSF = data.frame(east = coords[,1], north = coords[,2])
-  #
-  # crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
-
-  # coordsSF = st_as_sf(coordsSF, coords=c("east","north"), crs = crs_KM)
-  #
-  # coordsLonLat = convertKMToDeg(coordsSF)
-
- # } else{
-  # coordsSF = data.frame(east = coords[,1], north = coords[,2])
-  # coordsSF = st_as_sf(coordsSF, coords=c("east","north"), crs = 25837)
-  #
-  # coordsLonLat = convertKMToDeg(coords)
-  #}
-
-
-
-  #spCooordsLonLat = sp::SpatialPoints(coordsLonLat, proj4string=adminMap@proj4string, bbox = NULL)
-  out = st_join(coords, adminMap)
-  #out = sp::over(spCooordsLonLat, adminMap, returnList = FALSE)
+  out = sf::st_join(coords, adminMap)
   adminNames = out$NAME_1
   adminIDs = out$OBJECTID
 
@@ -574,9 +498,7 @@ updateWeightsByAdminArea = function(coords,
   iUrban = 1
   iRural = 1
 
-  # if(is.null(nrow(coords))){
-  # coords = cbind(coords[1], coords[2])
-  # }
+
   for(i in 1:nrow(coords)) {
     # time1 = proc.time()[3]
     theseCoords = matrix(st_coordinates(coords[i,]), nrow=1)
@@ -599,36 +521,11 @@ updateWeightsByAdminArea = function(coords,
     for (i in 1:length(thisSubPts)){
       coorSet = as.data.frame(thisSubPts[[i]])
       coorSet = setNames(coorSet, c("x", "y"))
-      # crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
 
       thisSubPtsSP = st_as_sf(coorSet, coords=c("x","y"), crs = st_crs(coords))
-      #thisSubPtsSPLonLat = convertKMToDeg(thisSubPtsSP)
       goodAreasTemp = st_join(thisSubPtsSP, thisPoly)
       goodAreas[[i]] = !is.na(goodAreasTemp$OBJECTID)
     }
-
-    #
-    # thisSubPtsSP = lapply(thisSubPts, function(x) {
-    #   #sp::SpatialPoints(x, proj4string=sp::CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"))
-    #   data.frame(.x[,1], .x[,2])
-    #   st_as_sf(as.data.frame(east = x[,1], north = x[,2]), coords=c("east","north"), crs = 25837)
-    #   })
-
-    # project subPts to correct projection
-    #thisSubPtsSPLonLat = lapply(thisSubPtsSP, function(x) {sp::spTransform(x, adminMap@proj4string)})
-
-    # determine if each sub-integration point is in correct admin area
-    # the following code is commented out because it takes far too long
-    # browser()
-    # subAreas = lapply(thisSubPtsSPLonLat, function(x) {over(x, adminMap, returnList=FALSE)$NAME_1})
-    # goodAreas = lapply(subAreas, function(x) {x == thisArea})
-    #goodAreas <- lapply(thisSubPtsSPLonLat, function(x) {!is.na(sp::over(x, thisPoly, returnList=FALSE))})
-    # require(fields)
-    # system.time(goodAreas2 <- lapply(thisSubPtsSPLonLat, function(x) {in.poly(attr(x, "coords"), attr(thisPoly@polygons[[1]]@Polygons[[1]], "coords"))}))
-    # require(ptinpoly)
-    # system.time(goodAreas3 <- lapply(thisSubPtsSPLonLat, function(x) {pip2d(attr(thisPoly@polygons[[1]]@Polygons[[1]], "coords"), attr(x, "coords"))}))
-    # require(Rcpp)
-    # system.time(goodAreas4 <- lapply(thisSubPtsSPLonLat, function(x) {pnt.in.poly2(attr(x, "coords"), attr(thisPoly@polygons[[1]]@Polygons[[1]], "coords"))}))
 
     # update weights for sub-integration points
     updatedSubWs = thisSubWs
@@ -715,27 +612,16 @@ makeJitterDataForTMB = function(integrationPointInfo, ys, urbanicity, ns, spdeMe
   nsUrban = ns[urbanicity]
   nsRural = ns[!urbanicity]
 
-  # # gather data into data frame
-  # dat = data.frame(y = c(rep(ysUrban, ncol(xUrban)), rep(ysRural, ncol(xRural))),
-  #                  n = c(rep(nsUrban, ncol(xUrban)), rep(nsRural, ncol(xRural))),
-  #                  east = c(c(xUrban), c(xRural)),
-  #                  north = c(c(yUrban), c(yRural)),
-  #                  w = c(c(wUrban), c(wRural)),
-  #                  urban = c(rep(TRUE, length(xUrban)), rep(FALSE, length(xRural))))
 
   # construct `A' matrices
-  AUrban.mesher = fm_evaluator(mesh = spdeMesh,
+  AUrban.mesher = fmesher::fm_evaluator(mesh = spdeMesh,
                                loc = coordsUrban)
   AUrban = AUrban.mesher[["proj"]][["A"]]
 
-  ARural.mesher = fm_evaluator(mesh = spdeMesh,
+  ARural.mesher = fmesher::fm_evaluator(mesh = spdeMesh,
                                loc = coordsRural)
   ARural = ARural.mesher[["proj"]][["A"]]
 
-  # AUrban = INLA::inla.spde.make.A(mesh = spdeMesh,
-  #                           loc = coordsUrban)
-  # ARural = INLA::inla.spde.make.A(mesh = spdeMesh,
-  #                           loc = coordsRural)
 
   list(ysUrban=ysUrban, ysRural=ysRural,
        nsUrban=nsUrban, nsRural=nsRural,
