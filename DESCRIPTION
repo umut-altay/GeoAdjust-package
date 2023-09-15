@@ -17,7 +17,7 @@ Description: The purpose is to account for the random displacements
  Umut Altay, John Paige, Andrea Riebler, Geir-Arne Fuglstad (2022) <arXiv:2211.07442v1>. 
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3
 Suggests: 
     knitr,
     rmarkdown,

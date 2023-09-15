@@ -471,7 +471,7 @@ updateWeightsByAdminArea = function(coords,
                                     nSubAPerPoint=10, nSubRPerPoint=10,
                                     testMode=FALSE) {
 
-  #adminMapPoly = sp::as.SpatialPolygons.PolygonsList(adminMap@polygons, adminMap@proj4string)
+
   adminMapPoly = adminMap
   # calculate set of typical sub-integration points for urban and rural clusters
   subIntegrationPointsUrban = getSubIntegrationPoints(integrationPoints=integrationPointsUrban,
@@ -585,16 +585,7 @@ updateWeightsByAdminArea = function(coords,
 makeJitterDataForTMB = function(integrationPointInfo, ys, urbanicity, ns, spdeMesh) {
   # first extract the integration point information
 
-  if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
-  }
 
-  # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
-  if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-    if (!is.element("INLA", (.packages()))) {
-      attachNamespace("INLA")
-    }
-  }
   xUrban = integrationPointInfo$xUrban
   yUrban = integrationPointInfo$yUrban
   wUrban = integrationPointInfo$wUrban
