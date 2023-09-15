@@ -1,6 +1,11 @@
 displace = function(scale = NULL, locKM = NULL, urbanRural = NULL, AdminShapeFile = NULL, check1 = NULL, boundary = NULL){
-  eastOriginal = locKM[, "east"]
-  northOriginal = locKM[,"north"]
+
+  crs_km = sf::st_crs(locKM)
+  crs_shapefile = sf::st_crs(AdminShapeFile)
+
+  eastOriginal = sf::st_coordinates(locKM)[,1]
+  northOriginal = sf::st_coordinates(locKM)[,2]
+
   nLoc = length(eastOriginal)
   jitteredCoords = list()
   for (j in 1:length(scale)){
@@ -11,9 +16,14 @@ displace = function(scale = NULL, locKM = NULL, urbanRural = NULL, AdminShapeFil
         distance = randomDistance(type = urbanRural[i], s = scale[j])
         newPoint_eastNorth = relocate(east = east, north = north, angle = angle, distance = distance)
         if (boundary == "TRUE"){
-          newPoint_spatialPointsObject = sp::SpatialPoints(cbind(newPoint_eastNorth[,1], newPoint_eastNorth[,2]), proj4string = sp::CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"), bbox = NULL)
-          newPoint_longLat <- sp::spTransform(newPoint_spatialPointsObject, Admin2ShapeFile@proj4string)
-          check2 <- sp::over(newPoint_longLat, Admin2ShapeFile, returnList = FALSE)
+          newPoint = data.frame(east = newPoint_eastNorth[,1], north = newPoint_eastNorth[,2])
+
+          newPointKM_SF = sf::st_as_sf(newPoint, coords=c("east","north"), crs = crs_km)
+
+          newPointDegree_SF = st_transform(newPointKM_SF, crs_shapefile)
+
+          check2 <- sf::st_join(newPointDegree_SF, AdminShapeFile)
+
           if ((is.na(check2[,"NAME_2"][[1]]) == FALSE) & (check2[,"NAME_2"][[1]] == check1[,"NAME_2"][[i]])){
             break
           }else{next}
@@ -22,6 +32,7 @@ displace = function(scale = NULL, locKM = NULL, urbanRural = NULL, AdminShapeFil
       newLocationSet[[i,1]] = newPoint_eastNorth[[1,1]]
       newLocationSet[[i,2]] = newPoint_eastNorth[[1,2]]
     }
+    newLocationSet = sf::st_as_sf(newLocationSet, coords=c("east","north"), crs = crs_km)
     jitteredCoords[[j]] = newLocationSet
   }
   return(jitteredCoords)

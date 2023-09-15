@@ -3,17 +3,14 @@
 #' @param x A list containing the model estimation output, returned by
 #' estimateModel() function.
 #' @param ... not used
-#' @return Prints the model estimation results of class res as a table that
+#' @return Prints the model estimation results of class GAmodel as a table that
 #' shows the estimated model parameters and the corresponding 95% credible
 #' interval lengths.
 #' @examples
 #' \donttest{
 #' path1 <- system.file("extdata", "exampleInputData.rda", package = "GeoAdjust")
-#' path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
 #' load(path1)
-#' load(path2)
-#' nNodes = exampleMesh[['n']]
-#' results <- estimateModel(data = exampleInputData, nNodes = nNodes,
+#' results <- estimateModel(data = exampleInputData,
 #' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
 #' range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05), n.sims = 1000)
 #' print(results)

@@ -2,63 +2,59 @@
 #' function.
 #'
 #' @param response A list containing the number of trials (ns) and number of
-#' successes (ys) for the binomial response, response
-#' values (ys) for the Gaussian response or the Poisson counts for the Poisson
-#' response.
-#' @param locObs A matrix containing the coordinates of DHS
-#' survey cluster centers in kilometers.
-#' @param likelihood A value indicating which likelihood should be used
+#' successes (ys) for the binomial model, response
+#' values (ys) for the Gaussian model or the Poisson counts for the Poisson
+#' model.
+#' @param locObs An sf class multipoint object containing the coordinates of DHS
+#' survey cluster centers. (It should contain the crs information.)
+#' @param likelihood A value indicating which likelihood model should be used
 #' (0, 1 or 2 for Gaussian, binomial or Poisson, respectively).
 #' @param jScale Jittering scale, where 1 represents the default DHS jittering
-#' scheme.
+#' scheme. It allows experimenting with larger jittering scales. Otherwise should
+#' remain as 1.
 #' @param urban A vector containing the urbanization classification of the
 #' administrative area that each cluster center is initially located within
 #' (U for urban and R for rural).
-#' @param mesh.s A triangulation mesh.
-#' @param adminMap A SpatialPolygonsDataFrame object containing the borders of
-#' the administrative area level, which was respected while the cluster centers
-#' were initially being jittered (can be obtained from https://gadm.org).
-#' @param nSubAPerPoint A value representing the number of unique
-#' sub-integration point angles per integration point.
-#' @param nSubRPerPoint A value representing the number of unique
-#' sub-integration point radii per integration point.
-#' @param covariateData A list containing the covariate rasters.
-#' @return A list containing the input for estimateModel() function.
+#' @param mesh.s A triangulation mesh. It should be constructed in the
+#' target_crs.
+#' @param adminMap An sf class multipolygon object. It contains the borders of
+#' the administrative area level that was respected while the cluster centers
+#' were initially being jittered (can be obtained from https://gadm.org). It
+#' should contain crs information.
+#' @param covariateData A list containing the covariates as SpatRaster objects.
+#' Each SpatRaster should contain the crs information.
+#' @param target_crs A projection string representing the desired coordinate
+#' reference system according to which, the integration rings and integration
+#' points will be located. The measurement unit of the target_crs should be in
+#' kilometers.
+#' @return A list containing the data input for estimateModel() function.
 #' @examples
-#' if(requireNamespace("INLA")){
 #' path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 #' path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
 #' load(path1)
 #' load(path2)
+#' crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
+#' crs_Degrees = "+proj=longlat +datum=WGS84"
+#' locObs = data.frame(long = surveyData$long, lat = surveyData$lat)
+#' locObs = st_as_sf(locObs, coords=c("long","lat"), crs = crs_Degrees)
 #' inputData <- prepareInput(response = list(ys = surveyData$ys, ns = surveyData$ns),
-#' locObs = cbind(surveyData$east, surveyData$north),
-#' likelihood = 1, jScale = 1,
+#' locObs = locObs, likelihood = 1, jScale = 1,
 #' urban = surveyData$urbanRural, mesh.s = exampleMesh, adminMap = adm1,
-#' nSubAPerPoint = 10, nSubRPerPoint = 10,
-#' covariateData = NULL)
-#' }
+#' covariateData = NULL, target_crs = crs_KM)
 #' @export
-prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
+prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=1,
                          urban=NULL, mesh.s=NULL,
-                         adminMap=NULL, nSubAPerPoint=10, nSubRPerPoint=10,
-                         covariateData=NULL){
+                         adminMap=NULL,
+                         covariateData=NULL, target_crs){
 
-  if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
-  }
-
-  # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
-  if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-    if (!is.element("INLA", (.packages()))) {
-      attachNamespace("INLA")
-    }
-  }
+  locObs = sf::st_transform(locObs, target_crs)
+  adminMap = sf::st_transform(adminMap, target_crs)
 
   # extract arguments
   flag2 = likelihood
 
   # number of observed locations
-  nLoc = length(locObs[,1])
+  nLoc = length(sf::st_coordinates(locObs)[,1])
 
   #response variable Gaussian/Binomial/Poisson
   if (flag2 == 0){
@@ -79,9 +75,10 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
   alphaSpatial = 0.05
   #
   #jittering the points a bit just to make a mesh
-  spde = getSPDEPrior(mesh.s, U=USpatial, alpha=alphaSpatial)
-  A.proj = INLA::inla.spde.make.A(mesh = mesh.s, loc = cbind(locObs[,1], locObs[,2]))
-  #
+  spdeComponents = fmesher::fm_fem(mesh.s)
+  A.mesher = fmesher::fm_evaluator(mesh = mesh.s, loc = cbind(st_coordinates(locObs)[,1], st_coordinates(locObs)[,2]))
+  A.proj = A.mesher[["proj"]][["A"]]
+
   # TMB input for the model that accounts for jittering
 
   # convert urban U/R into TRUE/FALSE
@@ -94,21 +91,16 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
   }
   urbanVals=as.logical(urban)
 
-  intPointInfo = makeAllIntegrationPoints(coords = cbind(locObs[,1], locObs[,2]), urbanVals = urbanVals,
+  #adminMap$OBJECTID = 1:length(adminMap$NAME_1)
+  intPointInfo = makeAllIntegrationPoints(coords = locObs, urbanVals = urbanVals,
                                           numPointsUrban=1+15*4, numPointsRural=1+15*9,
                                           scalingFactor = jScale,
                                           JInnerUrban=5, JOuterUrban=0,
                                           JInnerRural=5, JOuterRural=5,
                                           adminMap=adminMap,
-                                          nSubAPerPoint=nSubAPerPoint,
-                                          nSubRPerPoint=nSubRPerPoint,
+                                          nSubAPerPoint=10,
+                                          nSubRPerPoint=10,
                                           testMode=FALSE)
-
-
-  # if(testMode) {
-  #   return(intPointInfo)
-  # }
-
 
   xUrban = intPointInfo$xUrban
   yUrban = intPointInfo$yUrban
@@ -127,31 +119,28 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
   nsUrban = ns[urbanVals]
   nsRural = ns[!urbanVals]
 
-  # Covariate values at jittered locations and integration points:
+  UrbanCoor = data.frame(x = coordsUrban[,1], y = coordsUrban[,2])
+  UrbanCoor = sf::st_as_sf(UrbanCoor, coords=c("x","y"), crs = sf::st_crs(locObs))
 
-  # Convert them into degrees and Mollweide
-  coordsUrbanDegree = convertKMToDeg(coordsUrban)
-  coordsRuralDegree = convertKMToDeg(coordsRural)
+  RuralCoor = data.frame(x = coordsRural[,1], y = coordsRural[,2])
+  RuralCoor = sf::st_as_sf(RuralCoor, coords=c("x","y"), crs = sf::st_crs(locObs))
 
-  # coordsUrbanDegree = cbind(coordsUrbanDegree[,1], coordsUrbanDegree[,2])
-  # coordsRuralDegree = cbind(coordsRuralDegree[,1], coordsRuralDegree[,2])
-  # Convert them into SpatialPoints
-  coordsUrbanDegree = sp::SpatialPoints(cbind(coordsUrbanDegree[,1], coordsUrbanDegree[,2]), proj4string = sp::CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
-  coordsRuralDegree = sp::SpatialPoints(cbind(coordsRuralDegree[,1], coordsRuralDegree[,2]), proj4string = sp::CRS("+proj=longlat +datum=WGS84 +no_defs"), bbox = NULL)
-
-  # Extract the corresponding covariate values seperately for urban/rural
-  if(!is.null(covariateData)){
-
+if (!is.null(covariateData)){
   for (i in 1:length(covariateData)){
+
+    crs_CovRaster = sf::st_crs(covariateData[[i]])
+    coorVectorUrban = terra::vect(sf::st_transform(UrbanCoor, crs_CovRaster[["wkt"]]))
+    coorVectorRural = terra::vect(sf::st_transform(RuralCoor, crs_CovRaster[["wkt"]]))
+
     #Extract covariate values from data rasters at dhsLocs
-    assign(paste0("covariate_Urban", i), raster::extract(covariateData[[i]], coordsUrbanDegree, ncol=2))
-    assign(paste0("covariate_Rural", i), raster::extract(covariateData[[i]], coordsRuralDegree, ncol=2))
+    assign(paste0("covariate_Urban", i), terra::extract(covariateData[[i]], coorVectorUrban)[,2])
+    assign(paste0("covariate_Rural", i), terra::extract(covariateData[[i]], coorVectorRural)[,2])
 
   }
-  }
-
-  nLoc_urban = length(coordsUrbanDegree@coords[,1])
-  nLoc_rural = length(coordsRuralDegree@coords[,1])
+  #}
+}
+  nLoc_urban = length(sf::st_coordinates(UrbanCoor[,1]))
+  nLoc_rural = length(sf::st_coordinates(RuralCoor[,1]))
 
   desMatrixJittUrban = as.matrix(rep(1, nLoc_urban))
   desMatrixJittRural = as.matrix(rep(1, nLoc_rural))
@@ -202,9 +191,9 @@ prepareInput = function(response=NULL, locObs=NULL, likelihood, jScale=NULL,
                wRural = wRural,
                X_betaUrban = desMatrixJittUrban,
                X_betaRural = desMatrixJittRural,
-               M0    = spde[['param.inla']][['M0']], # SPDE sparse matrix
-               M1    = spde[['param.inla']][['M1']], # SPDE sparse matrix
-               M2    = spde[['param.inla']][['M2']], # SPDE sparse matrix
+               M0 = spdeComponents[["c0"]],
+               M1 = spdeComponents[["g1"]],
+               M2 = spdeComponents[["g2"]],
                AprojUrban = AUrban,             # Projection matrix (urban)
                AprojRural = ARural,             # Projection matrix (rural)
                options = c(1, ## if 1, use normalization trick

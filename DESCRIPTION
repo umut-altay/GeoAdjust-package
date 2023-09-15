@@ -1,7 +1,7 @@
 Package: GeoAdjust
 Type: Package
 Title: Accounting for Random Displacements of True GPS Coordinates of Data
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: c(person(given = "Umut", family = "Altay", email= "altayumut.ua@gmail.com", role = c("cre","aut")),
              person(given = "John", family = "Paige", email = "john.paige@ntnu.no", role = "aut"),
              person(given = "Geir-Arne", family = "Fuglstad", email = "geir-arne.fuglstad@ntnu.no", role = "aut"),
@@ -19,26 +19,23 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.2
 Suggests: 
-    INLA,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
-    rgdal,
-    maptools
 Config/testthat/edition: 3
 Depends: R (>= 3.5)
 LinkingTo: TMB, RcppEigen
 License: GPL (>= 2)
 Imports: 
-    raster,
-    sp,
+    fmesher,
+    terra,
+    sf,
     stats,
-    rgeos,
     SUMMER,
     Matrix,
     ggplot2,
     fields,
     geosphere,
     TMB
-Additional_repositories: https://inla.r-inla-download.org/R/stable/
+
 
