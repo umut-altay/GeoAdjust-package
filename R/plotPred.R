@@ -2,13 +2,20 @@
 #' variation)
 #'
 #' @param pred A matrix that is the output of predRes() function.
-#' @param predRaster The prediction raster that is constructed by the gridCountry() function.
-#' @param admin0 A SpatialPolygonsDataFrame representing the national level (admin0) borders of the country.
-#' @param admin1 A SpatialPolygonsDataFrame representing the first level (admin1) subnational borders of the country.
-#' @param admin2 A SpatialPolygonsDataFrame representing the second level (admin2) subnational borders of the country.
-#' @param rmPoly A number referring to the ID number of the admin2 level polygon that needs to be left uncolored. It can be set to NULL as well.
-#' @param locObs A data frame containing the coordinates of the observation points (DHS locations) in kilometers.
-#' @return A list of two ggplot objects. One of them (ggPred) shows the median predictions and the other one (ggUncertainty) shows the
+#' @param predRaster The prediction raster that is constructed by the
+#' gridCountry() function.
+#' @param admin0 An sf class MULTIPOLYGON representing the national level (admin0)
+#' borders of the country.
+#' @param admin1 An sf class MULTIPOLYGON representing the first level (admin1)
+#' subnational borders of the country.
+#' @param admin2 An sf class MULTIPOLYGON representing the second level (admin2)
+#' subnational borders of the country.
+#' @param rmPoly A number referring to the ID number of the admin2 level polygon
+#' that needs to be left uncolored. It can be set to NULL as well.
+#' @param locObs An sf class POINT object containing the coordinates of the
+#' observation points (DHS locations). It should contain crs information.
+#' @return A list of two ggplot objects. One of them (ggPred) shows the median
+#' predictions and the other one (ggUncertainty) shows the
 #' corresponding coefficient of variations across the country, respectively.
 #' @examples
 #' path1 <- system.file("extdata", "examplePredictionResults.rda", package = "GeoAdjust")
@@ -17,33 +24,37 @@
 #' load(path1)
 #' load(path2)
 #' load(path3)
+#' crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
 #' plots = plotPred(pred = examplePredictionResults,
 #' predRaster = exampleGrid[["predRast"]], admin0 = adm0,
-#' admin1 = adm1, admin2 = NULL, rmPoly = NULL,
-#' locObs = data.frame(East = surveyData$east, North = surveyData$north))
+#' admin1 = adm1, admin2 = NULL, rmPoly = NULL, target_crs = crs_KM)
 #' @export
-plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL, admin2 = NULL, rmPoly = NULL, locObs = NULL){
+plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL, admin2 = NULL, rmPoly = NULL, target_crs=NULL){
 
-  proj = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
-  admin0_trnsfrmd = sp::spTransform(admin0,proj)
-  admin1_trnsfrmd = sp::spTransform(admin1,proj)
+  admin0_trnsfrmd = sf::st_transform(admin0, target_crs)
+  admin1_trnsfrmd = sf::st_transform(admin1, target_crs)
+
   if(!is.null(admin2)){
-    admin2_trnsfrmd = sp::spTransform(admin2,proj)
+    admin2_trnsfrmd = sf::st_transform(admin2, target_crs)
   }
-  idx = 1:raster::ncell(predRaster)
-  predCoords = raster::xyFromCell(predRaster, idx)
-  predCoords = sp::SpatialPoints(predCoords, proj4string=sp::CRS("+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"))
+
+  idx = 1:terra::ncell(predRaster)
+
+  predCoords = terra::xyFromCell(predRaster, idx)
+  predCoords = data.frame(east = predCoords[,1], north = predCoords[,2])
+  predCoords = sf::st_as_sf(predCoords, coords=c("east","north"), crs = target_crs)
 
   uncertainty = (pred[,3]/pred[,1])*100
-  uncertainty = raster::setValues(predRaster, values = uncertainty, index=idx)
+  uncertainty = terra::setValues(predRaster, values = uncertainty)
 
-  pred = raster::setValues(predRaster, values = pred[,2], index=idx)
+  pred = terra::setValues(predRaster, values = pred[,2])
 
   if (!is.null(rmPoly)){
-    polyg = admin2_trnsfrmd[rmPoly,] # the lake
+    polyg = admin2_trnsfrmd[rmPoly,] # the polygon to be left uncolored
 
     # find which points are inside the polygon that needs to be removed, and assign NA to them
-    pointInPolygon = rgeos::gWithin(predCoords, polyg, byid=TRUE)
+
+    pointInPolygon = st_within(predCoords, polyg, sparse = FALSE, prepared = TRUE)
 
     inRmPoly = which(pointInPolygon == TRUE)
 
@@ -51,25 +62,33 @@ plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL
     uncertainty[inRmPoly] = NA
   }
 
-  pred = raster::mask(raster::crop(pred, raster::extent(admin0_trnsfrmd)), admin0_trnsfrmd, snap = 'out')
-  uncertainty = raster::mask(raster::crop(uncertainty, raster::extent(admin0_trnsfrmd)), admin0_trnsfrmd, snap = 'out')
-
+  pred = terra::mask(pred, admin0_trnsfrmd)
+  uncertainty = terra::mask(uncertainty, admin0_trnsfrmd)
 
   dfCountry <- ggplot2::fortify(admin1_trnsfrmd, region = "NAME_1")
 
-  locsPred = raster::xyFromCell(predRaster, idx)
+  by_n <- function(n) { seq(0, 1000, by = n) }
+
+  n_east = (max(st_coordinates(predCoords)[,1])-min(st_coordinates(predCoords)[,1]))/4
+  n_north = (max(st_coordinates(predCoords)[,2])-min(st_coordinates(predCoords)[,2]))/4
+
+  breaks_east = seq(min(st_coordinates(predCoords)[,1]), max(st_coordinates(predCoords)[,1]), by = n_east)
+  breaks_north = seq(min(st_coordinates(predCoords)[,2]), max(st_coordinates(predCoords)[,2]), by = n_north)
 
   # plotting the predictions
-  val = raster::getValues(pred)
-  d=data.frame(East = locsPred[,1],
-               North = locsPred[,2],val = val)
+  val = terra::values(pred)
+  val = val[,1]
+  d=data.frame(East = st_coordinates(predCoords)[,1],
+               North = st_coordinates(predCoords)[,2],
+               val=val)
+  colnames(d) = c("East", "North", "val")
 
-  ggPred = ggplot2::ggplot(d, ggplot2::aes(East,North)) +
+  ggPred =ggplot2::ggplot(d, ggplot2::aes(East,North)) +
     ggplot2::geom_raster(ggplot2::aes(fill=val)) + ggplot2::theme_bw() +
-    ggplot2::geom_path(data = dfCountry, ggplot2::aes(long,lat, group = group),colour = "black", inherit.aes = FALSE)+
-    ggplot2::theme(axis.text.y = ggplot2::element_text(size = 35), axis.text.x = ggplot2::element_text(size = 35)) +
+    geom_sf(data=dfCountry, fill=NA, colour = "lightgrey",inherit.aes = FALSE)+coord_sf(datum=st_crs(target_crs))+
+    ggplot2::theme(axis.text.y = ggplot2::element_text(size = 10), axis.text.x = ggplot2::element_text(size = 10)) +
     ggplot2::theme(axis.title.x=ggplot2::element_text(size = ggplot2::rel(3))) + ggplot2::theme(axis.title.y=ggplot2::element_text(size = ggplot2::rel(3)))+
-    ggplot2::theme(legend.title = ggplot2::element_text(size = ggplot2::rel(3))) + ggplot2::coord_fixed() +
+    ggplot2::theme(legend.title = ggplot2::element_text(size = ggplot2::rel(3))) + #ggplot2::coord_fixed() +
     ggplot2::xlab("Easting (km)") +
     ggplot2::ylab("Northing (km)")  +
     ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(),
@@ -77,22 +96,25 @@ plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL
                    panel.grid.major.y = ggplot2::element_blank(),
                    panel.grid.minor.y = ggplot2::element_blank()) +
     ggplot2::theme(legend.text=ggplot2::element_text(size=35))+
-    ggplot2::scale_fill_viridis_c(option = "viridis", begin = 0.2, end = 1, limits = c(min(val), max(val)), na.value="white") +ggplot2::geom_point(data = locObs, color = "red", size=0.001, shape="plus")+
+    ggplot2::scale_fill_viridis_c(option = "viridis", begin = 0.2, end = 1, limits = c(min(val, na.rm=T), max(val, na.rm=T)), na.value="white") +#ggplot2::geom_point(data = locObs, color = "red", size=0.001, shape="plus")+
     ggplot2::guides(fill = ggplot2::guide_colourbar(barwidth = 2.5, barheight = 25, title = ggplot2::labs("pred."), title.vjust=3) ) +
     ggplot2::scale_x_continuous(expand=c(0,0)) + ggplot2::scale_y_continuous(expand=c(0,0))
 
-  # plotting the uncertainty (coefficient of variation)
-  val = raster::getValues(uncertainty)
-  d=data.frame(East = locsPred[,1],
-               North = locsPred[,2],val = val)
 
+  # plotting the uncertainty (coefficient of variation)
+  val = terra::values(uncertainty)
+  val = val[,1]
+  d=data.frame(East = st_coordinates(predCoords)[,1],
+               North = st_coordinates(predCoords)[,2],
+               val=val)
+  colnames(d) = c("East", "North", "val")
 
   ggUncertainty = ggplot2::ggplot(d, ggplot2::aes(East,North)) +
     ggplot2::geom_raster(ggplot2::aes(fill=val)) + ggplot2::theme_bw() +
-    ggplot2::geom_path(data = dfCountry, ggplot2::aes(long,lat, group = group),colour = "black", inherit.aes = FALSE)+
-    ggplot2::theme(axis.text.y = ggplot2::element_text(size = 35), axis.text.x = ggplot2::element_text(size = 35)) +
+    geom_sf(data=dfCountry, fill=NA, colour = "lightgrey",inherit.aes = FALSE)+coord_sf(datum=st_crs(target_crs))+
+    ggplot2::theme(axis.text.y = ggplot2::element_text(size = 10), axis.text.x = ggplot2::element_text(size = 10)) +
     ggplot2::theme(axis.title.x=ggplot2::element_text(size = ggplot2::rel(3))) + ggplot2::theme(axis.title.y=ggplot2::element_text(size = ggplot2::rel(3)))+
-    ggplot2::theme(legend.title = ggplot2::element_text(size = ggplot2::rel(3))) + ggplot2::coord_fixed() +
+    ggplot2::theme(legend.title = ggplot2::element_text(size = ggplot2::rel(3))) + #ggplot2::coord_fixed() +
     ggplot2::xlab("Easting (km)") +
     ggplot2::ylab("Northing (km)")  +
     ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(),
@@ -100,7 +122,7 @@ plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL
                    panel.grid.major.y = ggplot2::element_blank(),
                    panel.grid.minor.y = ggplot2::element_blank()) +
     ggplot2::theme(legend.text=ggplot2::element_text(size=35))+
-    ggplot2::scale_fill_viridis_c(option = "viridis", begin = 0.2, end = 1, limits = c(min(val), max(val)), na.value="white") +ggplot2::geom_point(data = locObs, color = "red", size=0.001, shape="plus")+
+    ggplot2::scale_fill_viridis_c(option = "viridis", begin = 0.2, end = 1, limits = c(min(val), max(val)), na.value="white") +#ggplot2::geom_point(data = locObs, color = "red", size=0.001, shape="plus")+
     ggplot2::guides(fill = ggplot2::guide_colourbar(barwidth = 2.5, barheight = 25, title = ggplot2::labs("cv (%)"), title.vjust=3) ) +
     ggplot2::scale_x_continuous(expand=c(0,0)) + ggplot2::scale_y_continuous(expand=c(0,0))
 

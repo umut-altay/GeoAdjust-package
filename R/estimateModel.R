@@ -1,45 +1,67 @@
 #' Estimates model parameters
 #'
 #' @param data A data input list that is created by prepareInput() function.
-#' @param nNodes number of mesh nodes.
+#' @param options A list containing two components, namely, random and covariates.
+#' The function accounts for jittering both in the spatial random effect and in
+#' covariates (if there are any) by default. However, the jittering adjustment
+#' can be turned off in either the random effect or in covariates, or both, by
+#' setting the corresponding component of the list to zero.
+#' @param priors A list of two components. Beta is a vector of two elements and
+#' passes the parameters of the Gaussian prior that will be assigned to the covariates
+#' (including the intercept). The first element of it is the mean and the second
+#' one is the standard deviation of Gaussian prior. Range is a value representing
+#' the median range in kilometers, which will be used for constructing the
+#' PC (Penalized-complexity) priors.
+#' @param USpatial The threshold that is crossed by the the variance prior.
+#' @param alphaSpatial The probability of crossing the threshold for the variance prior.
+#' @param UNugget The threshold that is crossed by the prior on the nugget standard
+#' deviation. It will only be used when the likelihood is Gaussian.
+#' @param alphaNug The probability  of crossing the threshold for the
+#' prior on the nugget standard deviation. It will only be used when the likelihood
+#' is Gaussian.
 #' @param n.sims number of samples to be drawn for each model parameter
-#' @param options A list containing two components, namely, random and covariates, representing the spatial random field and covariates.
-#' Values of 1 and 0 turn the accounting for jittering in these components on and off.
-#' @param priors A list of six components. Beta is a vector of two elements and passes the parameters of the Gaussian prior that will be assigned
-#' to the covariates (including the intercept). The first element of it is the mean and the second one is the
-#' standard deviation of Gaussian prior. Range is a value representing the median range in kilometers, which will be used for constructing the PC (Penalized-complexity) priors.
-#' USpatial and alphaSpatial are the threshold and probability of crossing the threshold for the variance prior.
-#' UNugget and alphaNug are the threshold and probability of crossing the threshold for the prior on the nugget standard deviation.
-#' UNugget and alphaNug should be included in the priors argument, but they will only be used when the likelihood is Gaussian.
-#' @return Model estimation results of class called res. The output consists of four elements:
-#' A data frame containing the estimated model parameters and the corresponding 95% credible interval lengths,
-#' The optimized core model object from autodifferentiation of TMB,
-#' A matrix containing the sampled coefficient effect sizes and the random effect coefficients,
-#' A character string indicating the likelihood type in the model.
+#' @param log_tau SPDE parameter related to the spatial precision
+#' @param log_kappa SPDE parameter related to the range and spatial precision
+#' @return Model estimation results of class GAmodel. The output consists of four
+#' elements: A data frame containing the estimated model parameters and the
+#' corresponding 95% credible interval lengths, the optimized core model object
+#' from autodifferentiation of TMB, A matrix containing the sampled coefficient
+#' effect sizes and the random effect coefficients, A character string indicating
+#' the likelihood type in the model.
 #' @examples
 #' \donttest{
 #' path1 <- system.file("extdata", "exampleInputData.rda", package = "GeoAdjust")
 #' path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
 #' load(path1)
 #' load(path2)
-#' nNodes = exampleMesh[['n']]
-#' results <- estimateModel(data = exampleInputData, nNodes = nNodes,
-#' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-#' range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05), n.sims = 1000)
+#' results <- estimateModel(data = exampleInputData, priors = list(beta = c(0,1),
+#' range = 114), USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05, n.sims = 1000)
 #' }
 #' @importFrom stats optim
 #' @export
-estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NULL, n.sims = NULL){
+estimateModel = function(data = NULL, options = NULL, priors = NULL, n.sims = NULL,
+                         log_tau = NULL, log_kappa = NULL, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05){
 
+  if (!is.null(options[["random"]])){
   flagRandomField = options[["random"]]
-  flagCovariates = options[["covariates"]]
+  } else {
+  flagRandomField = 1
+  }
 
+  if (!is.null(options[["covariates"]])){
+    flagCovariates = options[["covariates"]]
+  } else {
+    flagCovariates = 1
+  }
+
+
+  nNodes = data[["num_s"]]
   beta_pri = priors[["beta"]]
   rangeMaternPri = priors[["range"]]
-  USpatial  = priors[["USpatial"]]
-  alphaSpatial  = priors[["alphaSpatial"]]
-  nugStd = priors[["UNugget"]]
-  alphaNug = priors[["alphaNug"]]
+  # USpatial  = priors[["USpatial"]]
+  # alphaSpatial  = priors[["alphaSpatial"]]
+  nugStd = UNugget
+  alphaNug = alphaNug
 
   matern_pri = c(rangeMaternPri, 0.5, USpatial , alphaSpatial)
   nug_pri = c(nugStd, alphaNug)
@@ -60,11 +82,14 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
     likelihood =  "Poisson"
     }
 
-
   nCov = length(data[["X_betaUrban"]][1,]) # number of covariates in the model, including the intercept
 
-  log_tau = 1.87 # Log tau (i.e. log spatial precision, Epsilon)
-  log_kappa = -3.69 # SPDE parameter related to the range
+  if(is.null(log_tau)){
+    log_tau = 2.74       # Log tau (i.e. log spatial precision, Epsilon)
+  }
+  if(is.null(log_kappa)){
+    log_kappa = -4        # SPDE parameter related to the range
+  }
 
   if (data[["flag2"]] != 0){
     tmb_params <- list(beta=rep(0, nCov),
@@ -192,7 +217,7 @@ estimateModel = function(data = NULL, nNodes = NULL, options = NULL, priors = NU
 }
 
   est = list(res=res, obj=obj,draws =t.draws, likelihood = likelihood)
-  class(est) = "res"
+  class(est) = "GAmodel"
 
   return(est)
 
