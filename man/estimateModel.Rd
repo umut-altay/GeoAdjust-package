@@ -6,35 +6,57 @@
 \usage{
 estimateModel(
   data = NULL,
-  nNodes = NULL,
   options = NULL,
   priors = NULL,
-  n.sims = NULL
+  n.sims = NULL,
+  log_tau = NULL,
+  log_kappa = NULL,
+  USpatial = 1,
+  alphaSpatial = 0.05,
+  UNugget = 1,
+  alphaNug = 0.05
 )
 }
 \arguments{
 \item{data}{A data input list that is created by prepareInput() function.}
 
-\item{nNodes}{number of mesh nodes.}
+\item{options}{A list containing two components, namely, random and covariates.
+The function accounts for jittering both in the spatial random effect and in
+covariates (if there are any) by default. However, the jittering adjustment
+can be turned off in either the random effect or in covariates, or both, by
+setting the corresponding component of the list to zero.}
 
-\item{options}{A list containing two components, namely, random and covariates, representing the spatial random field and covariates.
-Values of 1 and 0 turn the accounting for jittering in these components on and off.}
-
-\item{priors}{A list of six components. Beta is a vector of two elements and passes the parameters of the Gaussian prior that will be assigned
-to the covariates (including the intercept). The first element of it is the mean and the second one is the
-standard deviation of Gaussian prior. Range is a value representing the median range in kilometers, which will be used for constructing the PC (Penalized-complexity) priors.
-USpatial and alphaSpatial are the threshold and probability of crossing the threshold for the variance prior.
-UNugget and alphaNug are the threshold and probability of crossing the threshold for the prior on the nugget standard deviation.
-UNugget and alphaNug should be included in the priors argument, but they will only be used when the likelihood is Gaussian.}
+\item{priors}{A list of two components. Beta is a vector of two elements and
+passes the parameters of the Gaussian prior that will be assigned to the covariates
+(including the intercept). The first element of it is the mean and the second
+one is the standard deviation of Gaussian prior. Range is a value representing
+the median range in kilometers, which will be used for constructing the
+PC (Penalized-complexity) priors.}
 
 \item{n.sims}{number of samples to be drawn for each model parameter}
+
+\item{log_tau}{SPDE parameter related to the spatial precision}
+
+\item{log_kappa}{SPDE parameter related to the range and spatial precision}
+
+\item{USpatial}{The threshold that is crossed by the the variance prior.}
+
+\item{alphaSpatial}{The probability of crossing the threshold for the variance prior.}
+
+\item{UNugget}{The threshold that is crossed by the prior on the nugget standard
+deviation. It will only be used when the likelihood is Gaussian.}
+
+\item{alphaNug}{The probability  of crossing the threshold for the
+prior on the nugget standard deviation. It will only be used when the likelihood
+is Gaussian.}
 }
 \value{
-Model estimation results of class called res. The output consists of four elements:
-A data frame containing the estimated model parameters and the corresponding 95% credible interval lengths,
-The optimized core model object from autodifferentiation of TMB,
-A matrix containing the sampled coefficient effect sizes and the random effect coefficients,
-A character string indicating the likelihood type in the model.
+Model estimation results of class GAmodel. The output consists of four
+elements: A data frame containing the estimated model parameters and the
+corresponding 95% credible interval lengths, the optimized core model object
+from autodifferentiation of TMB, A matrix containing the sampled coefficient
+effect sizes and the random effect coefficients, A character string indicating
+the likelihood type in the model.
 }
 \description{
 Estimates model parameters
@@ -45,9 +67,7 @@ path1 <- system.file("extdata", "exampleInputData.rda", package = "GeoAdjust")
 path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
 load(path1)
 load(path2)
-nNodes = exampleMesh[['n']]
-results <- estimateModel(data = exampleInputData, nNodes = nNodes,
-options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05), n.sims = 1000)
+results <- estimateModel(data = exampleInputData, priors = list(beta = c(0,1),
+range = 114), USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05, n.sims = 1000)
 }
 }

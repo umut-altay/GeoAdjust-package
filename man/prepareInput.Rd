@@ -9,66 +9,68 @@ prepareInput(
   response = NULL,
   locObs = NULL,
   likelihood,
-  jScale = NULL,
+  jScale = 1,
   urban = NULL,
   mesh.s = NULL,
   adminMap = NULL,
-  nSubAPerPoint = 10,
-  nSubRPerPoint = 10,
-  covariateData = NULL
+  covariateData = NULL,
+  target_crs
 )
 }
 \arguments{
 \item{response}{A list containing the number of trials (ns) and number of
-successes (ys) for the binomial response, response
-values (ys) for the Gaussian response or the Poisson counts for the Poisson
-response.}
+successes (ys) for the binomial model, response
+values (ys) for the Gaussian model or the Poisson counts for the Poisson
+model.}
 
-\item{locObs}{A matrix containing the coordinates of DHS
-survey cluster centers in kilometers.}
+\item{locObs}{An sf class multipoint object containing the coordinates of DHS
+survey cluster centers. (It should contain the crs information.)}
 
-\item{likelihood}{A value indicating which likelihood should be used
+\item{likelihood}{A value indicating which likelihood model should be used
 (0, 1 or 2 for Gaussian, binomial or Poisson, respectively).}
 
 \item{jScale}{Jittering scale, where 1 represents the default DHS jittering
-scheme.}
+scheme. It allows experimenting with larger jittering scales. Otherwise should
+remain as 1.}
 
 \item{urban}{A vector containing the urbanization classification of the
 administrative area that each cluster center is initially located within
 (U for urban and R for rural).}
 
-\item{mesh.s}{A triangulation mesh.}
+\item{mesh.s}{A triangulation mesh. It should be constructed in the
+target_crs.}
 
-\item{adminMap}{A SpatialPolygonsDataFrame object containing the borders of
-the administrative area level, which was respected while the cluster centers
-were initially being jittered (can be obtained from https://gadm.org).}
+\item{adminMap}{An sf class multipolygon object. It contains the borders of
+the administrative area level that was respected while the cluster centers
+were initially being jittered (can be obtained from https://gadm.org). It
+should contain crs information.}
 
-\item{nSubAPerPoint}{A value representing the number of unique
-sub-integration point angles per integration point.}
+\item{covariateData}{A list containing the covariates as SpatRaster objects.
+Each SpatRaster should contain the crs information.}
 
-\item{nSubRPerPoint}{A value representing the number of unique
-sub-integration point radii per integration point.}
-
-\item{covariateData}{A list containing the covariate rasters.}
+\item{target_crs}{A projection string representing the desired coordinate
+reference system according to which, the integration rings and integration
+points will be located. The measurement unit of the target_crs should be in
+kilometers.}
 }
 \value{
-A list containing the input for estimateModel() function.
+A list containing the data input for estimateModel() function.
 }
 \description{
 Prepares input data list for the model estimation with estimateModel()
 function.
 }
 \examples{
-if(requireNamespace("INLA")){
 path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
 load(path1)
 load(path2)
+crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
+crs_Degrees = "+proj=longlat +datum=WGS84"
+locObs = data.frame(long = surveyData$long, lat = surveyData$lat)
+locObs = st_as_sf(locObs, coords=c("long","lat"), crs = crs_Degrees)
 inputData <- prepareInput(response = list(ys = surveyData$ys, ns = surveyData$ns),
-locObs = cbind(surveyData$east, surveyData$north),
-likelihood = 1, jScale = 1,
+locObs = locObs, likelihood = 1, jScale = 1,
 urban = surveyData$urbanRural, mesh.s = exampleMesh, adminMap = adm1,
-nSubAPerPoint = 10, nSubRPerPoint = 10,
-covariateData = NULL)
-}
+covariateData = NULL, target_crs = crs_KM)
 }

@@ -4,27 +4,39 @@
 \alias{meshCountry}
 \title{Creates a constrained refined Delaunay triangulation mesh based on the country borders.}
 \usage{
-meshCountry(admin0 = NULL, max.edge = NULL, offset = NULL)
+meshCountry(
+  admin0 = NULL,
+  max.edge = NULL,
+  cutoff = NULL,
+  offset = NULL,
+  target_crs = NULL
+)
 }
 \arguments{
-\item{admin0}{A SpatialPolygonsDataFrame representing the country borders,
-in UTM:zone 37 coordinate system.}
+\item{admin0}{An sf class multipolygon representing the country borders.}
 
 \item{max.edge}{A vector of two values. The first and the second elements of
-the vector represent the largest allowed triangle lengths for the inner and outer mesh, respectively.}
+the vector represent the largest allowed triangle lengths for the inner and
+outer mesh, respectively.}
 
-\item{offset}{A value representing the extension distance for the inla.mesh.2d object}
+\item{cutoff}{The minimum allowed distance of the vertices to each other.}
+
+\item{offset}{A value representing the extension distance for the mesh.}
+
+\item{target_crs}{A projection string representing the desired coordinate
+reference system according to which the mesh will be constructed. The
+measurement unit of the target_crs should be in kilometers.}
 }
 \value{
-A constrained refined Delaunay triangulation mesh created based on the country borders.
+A constrained refined Delaunay triangulation mesh created based on
+the country borders.
 }
 \description{
 Creates a constrained refined Delaunay triangulation mesh based on the country borders.
 }
 \examples{
-if(requireNamespace("INLA")){
-path1 <- system.file("extdata", "adm0UTM37.rda", package = "GeoAdjust")
+path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 load(path1)
-mesh.s <- meshCountry(admin0 = adm0UTM37, max.edge = c(25, 50), offset = -.08)
-}
+crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
+mesh.s <- meshCountry(admin0= adm0, max.edge = c(25, 50), offset = -.08, cutoff=4, target_crs = crs_KM)
 }

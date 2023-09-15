@@ -8,7 +8,6 @@ predRes(
   obj = NULL,
   predCoords = NULL,
   draws = NULL,
-  nCov = NULL,
   covariateData = NULL,
   mesh.s = NULL,
   flag = NULL
@@ -17,43 +16,44 @@ predRes(
 \arguments{
 \item{obj}{The optimized core model object returned by estimateModel() function.}
 
-\item{predCoords}{A matrix containing the coordinates of the prediction locations in kilometers (UTM zone:37).}
+\item{predCoords}{An sf class POINT object containing the coordinates of the
+prediction locations. It should contain crs information.}
 
-\item{draws}{A matrix containing 10.000 sampled values for each covariate effect size and 10.000 sampled values of random effect coefficients for each mesh node.
+\item{draws}{A matrix containing 10.000 sampled values for each covariate effect
+size and 10.000 sampled values of random effect coefficients for each mesh node.
 It is one of the elements of the returning output list of estimateModel() function.}
 
-\item{nCov}{A value showing the number of covariates (including the intercept).}
-
-\item{covariateData}{A list containing the covariate rasters.}
+\item{covariateData}{A list containing the covariate rasters. Each covariate
+raster should be SpatRast object and contain crs information.}
 
 \item{mesh.s}{A mesh created based on the country borders.}
 
-\item{flag}{A value indicating the type of the likelihood that will be used. Pass 0 for Gaussian, 1 for binomial and 2 for Poisson likelihoods.}
+\item{flag}{A value indicating the type of the likelihood that will be used.
+Pass 0 for Gaussian, 1 for binomial and 2 for Poisson likelihoods.}
 }
 \value{
-A matrix containing the mean, median,standard deviation and the lower and the upper bounds of 95% credible intervals of the predictions.
+A matrix containing the mean, median,standard deviation and the lower
+and the upper bounds of 95% credible intervals of the predictions.
 }
 \description{
 Predicts model outcomes at new locations.
 }
 \examples{
 \donttest{
-if(requireNamespace("INLA")){
 path1 <- system.file("extdata", "exampleInputData.rda", package = "GeoAdjust")
 path2 <- system.file("extdata", "exampleMesh.rda", package = "GeoAdjust")
-path3 <- system.file("extdata", "exampleGrid.rda", package = "GeoAdjust")
+path3 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 load(path1)
 load(path2)
 load(path3)
-nNodes = exampleMesh[['n']]
-results <- estimateModel(data = exampleInputData, nNodes = nNodes,
+results <- estimateModel(data = exampleInputData,
 options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
 range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05), n.sims = 1000)
+crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
+exampleGrid <- gridCountry(admin0 = adm0, res = 5, target_crs = crs_KM)
 pred = predRes(obj = results[["obj"]],
-predCoords = cbind(exampleGrid[["loc.pred"]]["east"],
-exampleGrid[["loc.pred"]]["north"]),
-draws = results[["draws"]], nCov = 1,
+predCoords = exampleGrid[["loc.pred"]],
+draws = results[["draws"]],
 mesh.s = exampleMesh, covariateData = NULL, flag = 1)
-}
 }
 }

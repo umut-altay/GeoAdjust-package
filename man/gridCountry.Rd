@@ -4,15 +4,21 @@
 \alias{gridCountry}
 \title{Creates a grid of locations within the bounding box of the national borders of a country of interest.}
 \usage{
-gridCountry(admin0 = NULL, res = NULL)
+gridCountry(admin0 = NULL, res = NULL, target_crs = NULL)
 }
 \arguments{
-\item{admin0}{A SpatialPolygonsDataFrame object representing the national (admin0) level borders of the country.}
+\item{admin0}{An sf class MULTIPOLYGON representing the country borders.}
 
 \item{res}{A value representing the resolution in kilometers.}
+
+\item{target_crs}{A projection string representing the desired coordinate
+reference system according to which the prediction grid will be constructed.
+The measurement unit of the target_crs should be in kilometers.}
 }
 \value{
-A list. The first element of the list, predRast, is the prediction raster. The second element of the list, loc.pred, is a data frame containing the grid of coordinates of the cell centers (both in degrees and in kilometers) of the prediction raster.
+A list. The first element of the list, predRast, is a SpatRaster object.
+The second element of the list, loc.pred, is an sf class POINT object containing
+coordinates of the cell centers (in target_crs) of the prediction raster.
 }
 \description{
 Creates a grid of locations within the bounding box of the national borders of a country of interest.
@@ -21,6 +27,7 @@ Creates a grid of locations within the bounding box of the national borders of a
 \donttest{
 path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 load(path1)
-grid <- gridCountry(admin0 = adm0, res = 5)
+crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
+grid <- gridCountry(admin0 = adm0, res = 5, target_crs = crs_KM)
 }
 }

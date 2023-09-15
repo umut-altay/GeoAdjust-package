@@ -12,26 +12,33 @@ plotPred(
   admin1 = NULL,
   admin2 = NULL,
   rmPoly = NULL,
-  locObs = NULL
+  target_crs = NULL
 )
 }
 \arguments{
 \item{pred}{A matrix that is the output of predRes() function.}
 
-\item{predRaster}{The prediction raster that is constructed by the gridCountry() function.}
+\item{predRaster}{The prediction raster that is constructed by the
+gridCountry() function.}
 
-\item{admin0}{A SpatialPolygonsDataFrame representing the national level (admin0) borders of the country.}
+\item{admin0}{An sf class MULTIPOLYGON representing the national level (admin0)
+borders of the country.}
 
-\item{admin1}{A SpatialPolygonsDataFrame representing the first level (admin1) subnational borders of the country.}
+\item{admin1}{An sf class MULTIPOLYGON representing the first level (admin1)
+subnational borders of the country.}
 
-\item{admin2}{A SpatialPolygonsDataFrame representing the second level (admin2) subnational borders of the country.}
+\item{admin2}{An sf class MULTIPOLYGON representing the second level (admin2)
+subnational borders of the country.}
 
-\item{rmPoly}{A number referring to the ID number of the admin2 level polygon that needs to be left uncolored. It can be set to NULL as well.}
+\item{rmPoly}{A number referring to the ID number of the admin2 level polygon
+that needs to be left uncolored. It can be set to NULL as well.}
 
-\item{locObs}{A data frame containing the coordinates of the observation points (DHS locations) in kilometers.}
+\item{locObs}{An sf class POINT object containing the coordinates of the
+observation points (DHS locations). It should contain crs information.}
 }
 \value{
-A list of two ggplot objects. One of them (ggPred) shows the median predictions and the other one (ggUncertainty) shows the
+A list of two ggplot objects. One of them (ggPred) shows the median
+predictions and the other one (ggUncertainty) shows the
 corresponding coefficient of variations across the country, respectively.
 }
 \description{
@@ -45,8 +52,8 @@ path3 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 load(path1)
 load(path2)
 load(path3)
+crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
 plots = plotPred(pred = examplePredictionResults,
 predRaster = exampleGrid[["predRast"]], admin0 = adm0,
-admin1 = adm1, admin2 = NULL, rmPoly = NULL,
-locObs = data.frame(East = surveyData$east, North = surveyData$north))
+admin1 = adm1, admin2 = NULL, rmPoly = NULL, target_crs = crs_KM)
 }
