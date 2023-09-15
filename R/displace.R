@@ -20,7 +20,7 @@ displace = function(scale = NULL, locKM = NULL, urbanRural = NULL, AdminShapeFil
 
           newPointKM_SF = sf::st_as_sf(newPoint, coords=c("east","north"), crs = crs_km)
 
-          newPointDegree_SF = st_transform(newPointKM_SF, crs_shapefile)
+          newPointDegree_SF = sf::st_transform(newPointKM_SF, crs_shapefile)
 
           check2 <- sf::st_join(newPointDegree_SF, AdminShapeFile)
 

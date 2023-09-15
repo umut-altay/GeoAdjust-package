@@ -24,10 +24,8 @@ coordinates of the cell centers (in target_crs) of the prediction raster.
 Creates a grid of locations within the bounding box of the national borders of a country of interest.
 }
 \examples{
-\donttest{
 path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 load(path1)
 crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
-grid <- gridCountry(admin0 = adm0, res = 5, target_crs = crs_KM)
-}
+grid = gridCountry(admin0 = adm0, res = 5, target_crs = crs_KM)
 }

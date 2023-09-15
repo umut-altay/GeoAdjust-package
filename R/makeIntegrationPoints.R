@@ -261,23 +261,6 @@ makeAllIntegrationPoints = function(coords, urbanVals,
     maxDist = rep(maxRuralDistance, nrow(coords))
     maxDist[urbanVals] = maxUrbanDistance
 
-
-    # convert into a multipoint object in degrees
-    # coorData = data.frame(x = coords[,1], y = coords[,2])
-    #
-    # coorData = st_as_sf(coorData, coords=c("x","y"), crs = st_crs(coords))
-
-
-    # coorData = data.frame(east = coords[,1], north = coords[,2])*1000
-    #
-    # coorData = coorData %>%
-    #   as.data.frame %>%
-    #   sf::st_as_sf(coords = c(1,2))
-
-    # sf::st_crs(coorData)<-25837
-
-    #coorDataDegrees = convertKMToDeg(coorData)
-
     adminMap$OBJECTID = 1:length(adminMap$NAME_1)
 
     temp = sf::st_join(coords, adminMap)
@@ -341,7 +324,7 @@ makeAllIntegrationPoints = function(coords, urbanVals,
 
 
     tempCoords = data.frame(x=tempCoords[,1], y=tempCoords[,2])
-    tempCoords = sf::st_as_sf(tempCoords, coords=c("x", "y"), crs = st_crs(coords))
+    tempCoords = sf::st_as_sf(tempCoords, coords=c("x", "y"), crs = sf::st_crs(coords))
 
     tempNewWs = updateWeightsByAdminArea(coords=tempCoords, urbanVals=tempUrbanVals,
                                          adminMap=adminMap,
@@ -501,7 +484,7 @@ updateWeightsByAdminArea = function(coords,
 
   for(i in 1:nrow(coords)) {
     # time1 = proc.time()[3]
-    theseCoords = matrix(st_coordinates(coords[i,]), nrow=1)
+    theseCoords = matrix(sf::st_coordinates(coords[i,]), nrow=1)
     thisArea = adminNames[i]
     thisAreaID = adminIDs[i]
     thisPoly = adminMapPoly[thisAreaID,]
@@ -520,10 +503,10 @@ updateWeightsByAdminArea = function(coords,
     goodAreas = list()
     for (i in 1:length(thisSubPts)){
       coorSet = as.data.frame(thisSubPts[[i]])
-      coorSet = setNames(coorSet, c("x", "y"))
+      coorSet = stats::setNames(coorSet, c("x", "y"))
 
-      thisSubPtsSP = st_as_sf(coorSet, coords=c("x","y"), crs = st_crs(coords))
-      goodAreasTemp = st_join(thisSubPtsSP, thisPoly)
+      thisSubPtsSP = sf::st_as_sf(coorSet, coords=c("x","y"), crs = sf::st_crs(coords))
+      goodAreasTemp = sf::st_join(thisSubPtsSP, thisPoly)
       goodAreas[[i]] = !is.na(goodAreasTemp$OBJECTID)
     }
 

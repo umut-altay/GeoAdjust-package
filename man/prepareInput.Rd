@@ -68,7 +68,7 @@ load(path2)
 crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
 crs_Degrees = "+proj=longlat +datum=WGS84"
 locObs = data.frame(long = surveyData$long, lat = surveyData$lat)
-locObs = st_as_sf(locObs, coords=c("long","lat"), crs = crs_Degrees)
+locObs = sf::st_as_sf(locObs, coords=c("long","lat"), crs = crs_Degrees)
 inputData <- prepareInput(response = list(ys = surveyData$ys, ns = surveyData$ns),
 locObs = locObs, likelihood = 1, jScale = 1,
 urban = surveyData$urbanRural, mesh.s = exampleMesh, adminMap = adm1,

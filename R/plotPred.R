@@ -12,22 +12,23 @@
 #' subnational borders of the country.
 #' @param rmPoly A number referring to the ID number of the admin2 level polygon
 #' that needs to be left uncolored. It can be set to NULL as well.
-#' @param locObs An sf class POINT object containing the coordinates of the
-#' observation points (DHS locations). It should contain crs information.
+#' @param target_crs A projection string representing the desired coordinate
+#' reference system according to which the maps will be created.
 #' @return A list of two ggplot objects. One of them (ggPred) shows the median
 #' predictions and the other one (ggUncertainty) shows the
 #' corresponding coefficient of variations across the country, respectively.
 #' @examples
+#' \donttest{
 #' path1 <- system.file("extdata", "examplePredictionResults.rda", package = "GeoAdjust")
-#' path2 <- system.file("extdata", "exampleGrid.rda", package = "GeoAdjust")
-#' path3 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
+#' path2 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 #' load(path1)
 #' load(path2)
-#' load(path3)
 #' crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
+#' exampleGrid <- gridCountry(admin0 = adm0, res = 5, target_crs = crs_KM)
 #' plots = plotPred(pred = examplePredictionResults,
 #' predRaster = exampleGrid[["predRast"]], admin0 = adm0,
-#' admin1 = adm1, admin2 = NULL, rmPoly = NULL, target_crs = crs_KM)
+#' admin1 = adm1, target_crs = crs_KM)
+#' }
 #' @export
 plotPred = function(pred = NULL, predRaster = NULL, admin0 = NULL, admin1 = NULL, admin2 = NULL, rmPoly = NULL, target_crs=NULL){
 

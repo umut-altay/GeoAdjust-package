@@ -23,7 +23,7 @@
 #' load(path3)
 #' results <- estimateModel(data = exampleInputData,
 #' options = list(random = 1, covariates = 1), priors = list(beta = c(0,1),
-#' range = 114, USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05), n.sims = 1000)
+#' range = 114), USpatial = 1, alphaSpatial = 0.05, UNugget = 1, alphaNug = 0.05, n.sims = 1000)
 #' crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
 #' exampleGrid <- gridCountry(admin0 = adm0, res = 5, target_crs = crs_KM)
 #' pred = predRes(obj = results[["obj"]],

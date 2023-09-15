@@ -9,12 +9,10 @@
 #' The second element of the list, loc.pred, is an sf class POINT object containing
 #' coordinates of the cell centers (in target_crs) of the prediction raster.
 #' @examples
-#' \donttest{
 #' path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 #' load(path1)
 #' crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
-#' grid <- gridCountry(admin0 = adm0, res = 5, target_crs = crs_KM)
-#' }
+#' grid = gridCountry(admin0 = adm0, res = 5, target_crs = crs_KM)
 #' @export
 gridCountry = function(admin0 = NULL, res = NULL, target_crs = NULL){
 
@@ -26,8 +24,8 @@ gridCountry = function(admin0 = NULL, res = NULL, target_crs = NULL){
   ymax = sf::st_bbox(admin0_trnsfrmd)[[4]]
 
   predRast <- terra::rast(xmin = xmin , xmax = xmax , ymin = ymin , ymax = ymax)
-  res(predRast) = res
-  crs(predRast) = target_crs
+  terra::res(predRast) = res
+  terra::crs(predRast) = target_crs
 
   idx = 1:terra::ncell(predRast)
   loc.pred = terra::xyFromCell(predRast, idx)

@@ -35,7 +35,6 @@ Imports:
     Matrix,
     ggplot2,
     fields,
-    geosphere,
     TMB
 
 

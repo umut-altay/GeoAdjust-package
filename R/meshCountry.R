@@ -15,8 +15,10 @@
 #' @examples
 #' path1 <- system.file("extdata", "geoData.rda", package = "GeoAdjust")
 #' load(path1)
-#' crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
-#' mesh.s <- meshCountry(admin0= adm0, max.edge = c(25, 50), offset = -.08, cutoff=4, target_crs = crs_KM)
+#' crs_KM = "+units=km +proj=utm +zone=37 +ellps=clrk80
+#' +towgs84=-160,-6,-302,0,0,0,0 +no_defs"
+#' mesh.s <- meshCountry(admin0= adm0, max.edge = c(25, 50), offset = -.08,
+#' cutoff=4, target_crs = crs_KM)
 #' @export
 meshCountry = function(admin0 = NULL,max.edge = NULL,cutoff = NULL, offset = NULL, target_crs = NULL){
 
